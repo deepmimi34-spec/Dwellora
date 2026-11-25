@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from .models import (
@@ -119,7 +120,7 @@ class PropertyCommentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         view = self.context['view']
-        property_record = Property.objects.get(pk=view.kwargs['property_pk'])
+        property_record = get_object_or_404(Property, pk=view.kwargs['property_pk'])
         is_official = bool(request.user.is_staff)
         comment = PropertyComment(
             property=property_record,
