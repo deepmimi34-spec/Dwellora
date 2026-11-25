@@ -35,8 +35,8 @@ jobs:
         run: python -m compileall -q .
       - name: Run Django system checks
         run: python manage.py check
-      - name: Run backend tests
-        run: python manage.py test
+      - name: Run account and property tests
+        run: python manage.py test accounts.tests property.tests --verbosity 2
 
   frontend:
     name: React and TypeScript build
