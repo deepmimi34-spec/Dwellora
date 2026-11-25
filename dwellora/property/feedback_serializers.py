@@ -146,3 +146,48 @@ class PropertyCommentModerationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyComment
         fields = ('moderation_status',)
+
+
+class PropertyInteractionSerializer(serializers.ModelSerializer):
+    profile_username = serializers.CharField(source='profile.username', read_only=True)
+    status = serializers.CharField(read_only=True)
+    verification_status = serializers.CharField(read_only=True)
+    verified_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    verified_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = PropertyInteraction
+        fields = (
+            'id', 'property', 'profile_username', 'interaction_type', 'status',
+            'verification_status', 'verified_by', 'verified_at',
+            'created_at', 'updated_at',
+        )
+        read_only_fields = (
+            'id', 'profile_username', 'status', 'verification_status',
+            'verified_by', 'verified_at', 'created_at', 'updated_at',
+        )
+
+
+class PropertyInteractionStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertyInteraction
+        fields = ('status',)
+
+    def update(self, instance, validated_data):
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
+        new_status = validated_data.get('status', instance.status)
+        if (
+            instance.verification_status == PropertyInteraction.VerificationStatus.VERIFIED
+            and new_status != PropertyInteraction.Status.COMPLETED
+        ):
+            raise serializers.ValidationError(
+                {'status': 'A verified interaction cannot be changed.'}
+            )
+        instance.status = new_status
+        try:
+            instance.full_clean()
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(error.message_dict) from error
+        instance.save(update_fields=['status', 'updated_at'])
+        return instance
