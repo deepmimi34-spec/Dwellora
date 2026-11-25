@@ -127,51 +127,6 @@ class ProfilePrivacyTests(TestCase):
         self.assertTrue(Profile.objects.filter(pk=self.other.pk).exists())
 
 
-
-class PublicApiRouteTests(TestCase):
-    def test_property_list_route_is_public(self):
-        from django.test import Client
-        from property.models import Property
-
-        Property.objects.create(
-            title='Public listing',
-            property_type='Apartment',
-            region='Ashanti',
-        )
-
-        response = Client().get('/api/property/property/list/')
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()), 1)
-
-    def test_service_directory_route_is_public(self):
-        from django.test import Client
-
-        response = Client().get('/api/services/')
-
-        self.assertEqual(response.status_code, 200)
-
-    def test_jwt_token_route_authenticates_registered_profile(self):
-        from django.test import Client
-
-        user = Profile.objects.create_user(
-            username='api_login_member',
-            password='A-strong-password-948!',
-            bio='Dwellora member',
-        )
-
-        response = Client().post(
-            '/api/auth/token/',
-            {'username': user.username, 'password': 'A-strong-password-948!'},
-            content_type='application/json',
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('access', response.json())
-        self.assertIn('refresh', response.json())
-
-
-
 class PublicApiIntegrationTests(TestCase):
     def test_property_and_service_discovery_routes_are_public(self):
         from property.models import Property
