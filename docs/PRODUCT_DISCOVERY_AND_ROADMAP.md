@@ -27,6 +27,18 @@ A polished search experience is necessary, but the differentiated value is a tra
 - **Rightmove:** Saved properties, saved searches, alerts and shared lists make a long property search easier to manage.
 - **Ghana marketplace apps:** Plate and PMC advertise direct messaging, map-based discovery, viewing requests, price alerts and mobile-first property browsing. Dwellora should evaluate these patterns without copying their branding or assuming their claims are independently verified.
 
+### Community feedback and app-store usability signals
+
+These are qualitative comments and small app-store samples, not representative market research. They are useful for identifying problems to test with real Dwellora users.
+
+- In a r/TechGhana discussion, a renter asked for a place where people could review a property before signing. The poster described problems that only became apparent after moving in; replies supported a broader service-review idea. This is a strong signal to distinguish **viewed the property** from **lived there** and to let verified residents describe maintenance and landlord communication.
+- In r/ghana discussions, renters described properties that were already taken, changing prices, unreliable agents and continued reliance on WhatsApp or personal referrals. Treat these as individual experiences, but make availability freshness and enquiry reliability core product requirements.
+- A public meQasa app review reproduced by an app-review aggregator reported that saved properties, sharing and the image-viewer close action did not work reliably. The sample is small, so this is a concrete usability test idea—not a conclusion about the whole service.
+- PMC's App Store release notes describe useful operational patterns: in-app chat, report-a-problem follow-up, blocking/reporting conversations, accessible text/screen-reader support, map/list consistency and preventing duplicate viewing requests. Its listing showed only two ratings when reviewed, so do not infer broad satisfaction from the score.
+- A Ghana housing community post proposed exact neighbourhoods, real GHS prices, actual-property photos/video and visible agency-fee information. Treat these as community design suggestions, not universal rules.
+
+The resulting Dwellora acceptance tests should include: saved homes persist after signing out and back in; share links open the correct listing; closing a photo viewer returns users to the same search position and filters; duplicate viewing requests are blocked; map and list result counts agree; and the interface remains usable with large text and screen readers.
+
 ## 3. The Dwellora experience we should build
 
 ### A. A listing with a transparent cost breakdown
@@ -73,16 +85,17 @@ Keep three different forms of feedback separate:
 
 ### E. Useful review categories
 
-For rental and short-stay experiences, consider:
-- Listing accuracy
-- Cleanliness and property condition
-- Communication
-- Viewing or check-in experience
-- Location and access
-- Value for money
+For rental experiences, consider:
+- Listing accuracy and move-in condition
+- Cleanliness and maintenance
+- Landlord/agent communication and responsiveness to repairs
+- Water, electricity and internet reliability (show as experience reports, not guaranteed infrastructure facts)
+- Viewing and move-in process
+- Location, access and noise
+- Clarity of fees and value for money
 - Overall experience
 
-For a sale listing, do not reuse stay-related categories. Later, add transaction-specific categories only when Dwellora can verify the relevant interaction.
+For short stays, use stay-specific categories such as cleanliness, check-in and communication. For a sale listing, do not reuse stay-related categories. Add transaction-specific categories only when Dwellora can verify the relevant interaction. Allow verified visitors to write about the viewing process, but reserve resident-only categories for a recorded tenancy interaction.
 
 Reviews should have a visible date, an experience-verification label, moderation/report action and a right of reply. Do not allow listers to delete legitimate negative reviews. Provide an appeal/moderation workflow for abuse, private information, threats or demonstrably irrelevant content.
 
@@ -123,6 +136,7 @@ Reviews should have a visible date, an experience-verification label, moderation
 - Verified-interaction property reviews and lister replies.
 - Abuse reporting, moderation, appeals and review integrity controls.
 - Dwellora product feedback centre and public feature-status tracking.
+- A simple, visible "Report a problem / Suggest an improvement" entry point with a confirmation and status update.
 
 ### Release 4 — Decision intelligence
 - Comparable asking-price context where reliable data exists.
@@ -167,7 +181,13 @@ The source list below records the public material used for this product discover
 - REAC licensing information: https://reac.gov.gh/licence/
 - meQasa agent/agency verification FAQ: https://meqasa.com/faq
 - Plate · Homes app description (advertised features): https://play.google.com/store/apps/details?id=gh.plate.app
-- PMC app description and ratings: https://apps.apple.com/gh/app/pmc-real-estate-rentals/id6738896407
+- PMC app description, release notes and ratings: https://apps.apple.com/gh/app/pmc-real-estate-rentals/id6738896407
+- Meqasa App Store listing and release history: https://apps.apple.com/gh/app/meqasa/id1401184947
+- Meqasa user-review sample (third-party review aggregation; small sample): https://apprecs.com/android/com.meqasa.search2/meqasa
+- Reddit r/TechGhana, request for a property-review platform: https://www.reddit.com/r/TechGhana/comments/1tqa4ca/app_or_website_to_review_a_property_before_renting/
+- Reddit r/ghana, house-hunting and stale-listing experiences: https://www.reddit.com/r/ghana/comments/1qck7dg/for_expatsdiaspora_what_do_you_wish_you_knew/
+- Reddit r/ghana, current discussion about finding rentals and avoiding scams: https://www.reddit.com/r/ghana/comments/1wukf70/renting_in_ghana/
+- Reddit r/ghana, community discussion of rental search pain points: https://www.reddit.com/r/ghana/comments/1trl3o1/how_are_people_actually_finding_houses_in_ghana/
 
 ### International patterns
 - Airbnb, why reviews matter: https://www.airbnb.com/resources/hosting-homes/a/why-reviews-matter-41
