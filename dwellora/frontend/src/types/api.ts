@@ -5,6 +5,7 @@ export interface Profile extends ApiRecord {
   username?: string;
   email?: string;
   bio?: string;
+  is_staff?: boolean;
 }
 
 export interface Property extends ApiRecord {
@@ -21,6 +22,7 @@ export interface Property extends ApiRecord {
 
 export interface HostelUnit extends ApiRecord {
   name?: string;
+  unit_name?: string;
 }
 
 export interface Booking extends ApiRecord {
