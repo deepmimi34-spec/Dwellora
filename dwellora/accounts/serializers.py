@@ -13,8 +13,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('id', 'username', 'email', 'password', 'bio')
-        read_only_fields = ('id',)
+        fields = ('id', 'username', 'email', 'password', 'bio', 'is_staff')
+        read_only_fields = ('id', 'is_staff')
 
     def validate_password(self, value):
         validate_password(value, user=self.instance)
