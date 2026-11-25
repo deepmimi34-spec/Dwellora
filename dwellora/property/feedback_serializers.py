@@ -56,7 +56,7 @@ class PropertyReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'You can only review your own verified property interaction.'
             )
-        if not interaction.is_review_eligible:
+        if not interaction.is_review_eligible():
             raise serializers.ValidationError(
                 'Reviews require a completed interaction verified by Dwellora staff.'
             )
