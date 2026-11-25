@@ -144,7 +144,6 @@ class PropertyInteraction(models.Model):
             'updated_at',
         ])
 
-    @property
     def is_review_eligible(self):
         return (
             self.status == self.Status.COMPLETED
@@ -202,7 +201,7 @@ class PropertyReview(models.Model):
 
     def clean(self):
         super().clean()
-        if self.interaction_id and not self.interaction.is_review_eligible:
+        if self.interaction_id and not self.interaction.is_review_eligible():
             raise ValidationError({
                 'interaction': 'A review requires a completed, staff-verified interaction.'
             })
