@@ -1,10 +1,12 @@
 # Dwellora
 
-Dwellora is a Django REST backend with a React/Vite management frontend.
+Dwellora is a Ghana-focused property platform with a Django REST API and a React/Vite account workspace. The current branch is deliberately being stabilised before database migrations and public marketplace features are enabled.
 
-## Backend: local setup
+## Backend setup
 
-Run these commands from the `dwellora/` directory (the directory containing `manage.py`):
+Run from the `dwellora/` directory (the directory containing `manage.py`).
+
+### Linux / macOS / GitHub Codespaces
 
 ```bash
 python3.13 -m venv .venv
@@ -13,36 +15,68 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 cp .env.example .env
 python manage.py check
-```
-
-On Windows PowerShell, activate the environment with:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-Then run:
-
-```bash
 python manage.py runserver
 ```
 
-The default local database is SQLite. **Do not run migrations yet.** The custom user model and several application models need to be reconciled, and initial migrations must be generated only after that review.
+### Windows PowerShell
 
-## Frontend: local setup
+```powershell
+py -3.13 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+python manage.py check
+python manage.py runserver
+```
+
+The default local database is SQLite. Set the database and allowed-host environment variables in `.env` when using another environment.
+
+## Frontend setup
 
 Run from `dwellora/frontend/`:
 
 ```bash
 npm install
+cp .env.example .env
 npm run build
 npm run dev
 ```
 
-Set `VITE_API_BASE_URL` in the frontend environment to the API origin including the `/api/` prefix when the application API routes are restored.
+Set `VITE_API_BASE_URL` to the Django API origin including the `/api/` prefix. The default is `http://127.0.0.1:8000/api/`.
 
-## Current stabilization status
+## Current active API surface
 
-The repository is being stabilized in small, verifiable steps. The Django project configuration and process health endpoint are restored first. Application API routes are intentionally not mounted yet because several existing app modules have unresolved model/import inconsistencies. They will be re-enabled after those modules are repaired and tested.
+- `/health/` — process health.
+- `/api/auth/token/` and `/api/auth/token/refresh/` — JWT sign-in and refresh.
+- `/api/accounts/profile/` — account registration.
+- `/api/accounts/profile/view_details/` — authenticated user's own profile.
+- `/api/accounts/profile/update/` and `/api/accounts/profile/delete/` — authenticated user's own profile.
+- `/api/property/property/list/` and `/api/property/property/<id>/detail/` — public property discovery.
+- Property create/update/delete — staff-only until a safe owner/lister relationship is implemented.
+- `/api/services/` — public provider directory; provider profile creation is authenticated and updates/deletion are owner-scoped.
+- Booking management — staff-only until customer ownership is represented.
 
-Never commit `.env`, database files, virtual environments, or generated build output.
+The React application currently supports account creation, sign-in, refresh-token handling, sign-out and access to the enabled workspace resources.
+
+## Feedback and review work
+
+The branch contains tested models and views for viewing/tenancy interactions, verified-experience reviews, property questions/comments, staff moderation and content reports. Their URL definitions are kept separately in `property/feedback_urls.py` and are not mounted in the active API URLConf yet.
+
+**Do not expose these endpoints or run migrations against production until the deployed database has been inspected, backed up and a data-preserving migration plan approved.** The existing custom user model and application model history require review before the initial migration set is created.
+
+## Tests
+
+Run the CI test modules from `dwellora/`:
+
+```bash
+python manage.py test accounts.tests property.tests booking.tests services.tests property.feedback_tests property.interaction_tests property.report_tests --verbosity 2
+```
+
+CI also runs `python manage.py check`, Python compilation and the React/TypeScript production build.
+
+## Safety notes
+
+- Never commit `.env`, database files, virtual environments, or generated build output.
+- Do not treat a profile identity check, REAC licence lookup, property visit or user review as proof of property title or structural safety.
+- Do not create migrations against a live database before inspection and backup.
