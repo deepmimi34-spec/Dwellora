@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import (
     Property,
     PropertyComment,
+    PropertyContentReport,
     PropertyInteraction,
     PropertyReview,
 )
