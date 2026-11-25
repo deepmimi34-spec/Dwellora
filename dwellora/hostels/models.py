@@ -26,7 +26,8 @@ class HostelType(models.Model):
         verbose_name = 'Hostel Type'
 
     def __str__(self):
-        return f'{self.hostel_name}'
+        return self.name
+
 
 class HostelUnit(models.Model):
     STATUS_CHOICES = (
@@ -43,15 +44,5 @@ class HostelUnit(models.Model):
         db_table = 'hostel_unit'
         verbose_name = 'Hostel Unit'
 
-
     def __str__(self):
         return f'{self.status} - {self.unit_name}'
-
-
-
-
-
-
-
-
-# Create your models here.
