@@ -3,7 +3,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.models import Profile
 from .models import Property
-from .views import PropertyDeleteView, PropertyDetailView, PropertyUpdate
+from .views import PropertyCreate, PropertyDeleteView, PropertyDetailView, PropertyUpdate
 
 
 class PropertyCompletenessTests(TestCase):
@@ -94,6 +94,24 @@ class PropertyEndpointAccessTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.property_record.refresh_from_db()
         self.assertEqual(self.property_record.title, 'Two-bedroom apartment')
+
+    def test_non_staff_cannot_create_property(self):
+        request = self.factory.post(
+            '/property/create/',
+            {
+                'title': 'Unattributed listing',
+                'property_type': 'Apartment',
+                'region': 'Ashanti',
+            },
+            format='json',
+        )
+        from rest_framework.test import force_authenticate
+        force_authenticate(request, user=self.member)
+
+        response = PropertyCreate.as_view()(request)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Property.objects.filter(title='Unattributed listing').exists())
 
     def test_staff_can_update_property(self):
         request = self.factory.patch(
