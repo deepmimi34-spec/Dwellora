@@ -1,35 +1,35 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework import generics, permissions
 
-from .forms import HostelBookingForm
 from .models import HostelBooking
 from .serializers import HostelBookingSerializer
 
 
-class HostelBookingView(ListAPIView):
-    queryset = HostelBooking.objects.all()
-    model = HostelBooking
+# Booking ownership is not yet represented in the current schema.
+# Keep these operational endpoints staff-only until bookings are linked
+# to the authenticated customer and permission-tested.
+class HostelBookingView(generics.ListAPIView):
+    queryset = HostelBooking.objects.select_related(
+        'hostel',
+        'hostel__hostel_type',
+        'hostel__hostel_type__hostel_building',
+    )
     serializer_class = HostelBookingSerializer
-    form_class = HostelBookingForm
-    context_object_name = 'hostel_booking'
+    permission_classes = [permissions.IsAdminUser]
 
 
-class HostelBookingCreateView(LoginRequiredMixin, CreateAPIView):
-    model = HostelBooking
-    serializer_class = HostelBookingSerializer
-    FormClass = HostelBookingForm
+class HostelBookingCreateView(generics.CreateAPIView):
     queryset = HostelBooking.objects.all()
-
-
-class HostelBookingUpdateView(LoginRequiredMixin, UpdateAPIView):
-    model = HostelBooking
     serializer_class = HostelBookingSerializer
-    form_class = HostelBookingForm
-    queryset = HostelBooking.objects.all()
+    permission_classes = [permissions.IsAdminUser]
 
-class HostelBookingDestroyView(DestroyAPIView):
-    model = HostelBooking
-    serializer_class = HostelBookingSerializer
-    form_class = HostelBookingForm
+
+class HostelBookingUpdateView(generics.UpdateAPIView):
     queryset = HostelBooking.objects.all()
-# Create your views here.
+    serializer_class = HostelBookingSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class HostelBookingDestroyView(generics.DestroyAPIView):
+    queryset = HostelBooking.objects.all()
+    serializer_class = HostelBookingSerializer
+    permission_classes = [permissions.IsAdminUser]
