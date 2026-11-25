@@ -8,10 +8,10 @@ export const API_BASE_URL = root;
 export const endpoints = {
   accounts: { create: '/accounts/profile/', list: '/accounts/profile/view_details/', update: '/accounts/profile/update/', remove: '/accounts/profile/delete/' },
   properties: { create: '/property/property/create/', list: '/property/property/list/', detail: (id: Id) => `/property/property/${id}/detail/`, update: (id: Id) => `/property/property/${id}/update/`, remove: (id: Id) => `/property/property/${id}/delete/` },
-  bookings: { create: '/booking/hostel_booking/', list: '/booking/hostel_view/', update: '/booking/hostel_update/', remove: '/booking/hostel_delete/' },
+  bookings: { create: '/booking/hostel_booking/', list: '/booking/hostel_view/', update: (id: Id) => `/booking/hostel_update/${id}/`, remove: (id: Id) => `/booking/hostel_delete/${id}/` },
   hostels: { create: '/hostels/create_bookings', list: '/hostels/list', detail: (id: Id) => `/hostels/detail/${id}/`, update: '/hostels/update_booking' },
   hotels: { create: '/hotels/hostel/create/', list: '/hotels/hostel/list/', detail: '/hotels/hostel/detail/', update: '/hotels/hostel/update/', remove: '/hotels/hostel/delete/' },
-  services: { create: '/services/create_service/', list: '/services/create_service/', detail: (id: Id) => `/services/create_service/${id}/`, update: (id: Id) => `/services/update_service/${id}/`, remove: (id: Id) => `/services/delete_service/${id}/` }
+  services: { create: '/services/create_service/', list: '/services/', detail: (id: Id) => `/services/create_service/${id}/`, update: (id: Id) => `/services/update_service/${id}/`, remove: (id: Id) => `/services/delete_service/${id}/` }
 } as const;
 
 export type EndpointGroup = keyof typeof endpoints;

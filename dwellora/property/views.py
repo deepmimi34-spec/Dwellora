@@ -1,47 +1,39 @@
-from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
 
 from .forms import PropertyForm
 from .serializers import PropertySerializer
 from .models import Property
 
-User = get_user_model()
 
-# Properties of agents and landlords
+class PropertyListView(generics.ListAPIView):
+    queryset = Property.objects.all().order_by('id')
+    serializer_class = PropertySerializer
+    permission_classes = (permissions.AllowAny,)
+
+
 class PropertyCreate(generics.CreateAPIView):
     form_class = PropertyForm
-    model_class = Property
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = PropertySerializer
-
-
-
-
-class PropertyDetailView(generics.ListAPIView):
-    model = Property
-    serializer_class = PropertySerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     queryset = Property.objects.all()
+    serializer_class = PropertySerializer
+    # The current model has no owner/lister field. Keep creation staff-only
+    # rather than accepting listings that cannot be attributed to an account.
+    permission_classes = (permissions.IsAdminUser,)
+
+
+class PropertyDetailView(generics.RetrieveAPIView):
+    queryset = Property.objects.all()
+    serializer_class = PropertySerializer
+    permission_classes = (permissions.AllowAny,)
 
 
 class PropertyUpdate(generics.UpdateAPIView):
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
-    model_class = Property
-    permission_classes = (permissions.IsAuthenticated,)
-
+    permission_classes = (permissions.IsAdminUser,)
 
 
 class PropertyDeleteView(generics.DestroyAPIView):
-    model = Property
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = PropertySerializer
     queryset = Property.objects.all()
+    serializer_class = PropertySerializer
     form_class = PropertyForm
-
-
-
-
-# Create your views here.
-
-
+    permission_classes = (permissions.IsAdminUser,)

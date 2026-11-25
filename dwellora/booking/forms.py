@@ -1,15 +1,18 @@
-from django.forms import ModelForm, DateInput
+from django import forms
+from django.forms import ModelForm
 
-from booking.models import HostelBooking
+from .models import HostelBooking
 
 
 class HostelBookingForm(ModelForm):
-     class Meta:
+    class Meta:
         model = HostelBooking
-        fields = '__all__'
-        exclude = ('first_name', 'last_name', )
-
+        fields = ['hostel', 'start_date', 'end_date']
         widgets = {
-            'start_date': DateInput(attrs={'class': 'datepicker'}),
-            'end_date': DateInput(attrs={'class': 'datepicker'}),
+            'start_date': forms.DateInput(
+                attrs={'class': 'datepicker', 'type': 'date'}
+            ),
+            'end_date': forms.DateInput(
+                attrs={'class': 'datepicker', 'type': 'date'}
+            ),
         }

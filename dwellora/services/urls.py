@@ -1,9 +1,17 @@
 from django.urls import path
-from .views import ServiceList, ServiceDetail, ServiceUpdate, ServiceDelete
+
+from .views import (
+    ServiceCreate,
+    ServiceDelete,
+    ServiceDetail,
+    ServiceList,
+    ServiceUpdate,
+)
 
 urlpatterns = [
-    path('create_service/', ServiceList.as_view()),
-    path('create_service/<int:pk>/', ServiceDetail.as_view()),
-    path('update_service/<int:pk>/', ServiceUpdate.as_view()),
-    path('delete_service/<int:pk>/', ServiceDelete.as_view()),
+    path('', ServiceList.as_view(), name='service_list'),
+    path('create_service/', ServiceCreate.as_view(), name='service_create'),
+    path('create_service/<int:pk>/', ServiceDetail.as_view(), name='service_detail'),
+    path('update_service/<int:pk>/', ServiceUpdate.as_view(), name='service_update'),
+    path('delete_service/<int:pk>/', ServiceDelete.as_view(), name='service_delete'),
 ]
