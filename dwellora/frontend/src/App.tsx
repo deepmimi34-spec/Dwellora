@@ -6,10 +6,10 @@ import type { ApiRecord } from './types/api';
 
 const configs = {
   properties: { label: 'Properties', fields: ['title', 'property_type', 'region', 'city', 'furnished', 'parking', 'water_available', 'internet_available', 'kitchen_available'] },
-  hostels: { label: 'Hostel units', fields: ['name'] },
+  hostels: { label: 'Hostel units', fields: ['unit_name'] },
   bookings: { label: 'Bookings', fields: ['hostel', 'start_date', 'end_date'] },
   hotels: { label: 'Hotels', fields: [] },
-  services: { label: 'Services', fields: [] },
+  services: { label: 'Services', fields: ['service_type', 'description'] },
   accounts: { label: 'Profiles', fields: ['username', 'email', 'password', 'bio'] },
 } as const;
 type Resource = keyof typeof configs;
