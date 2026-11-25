@@ -36,7 +36,7 @@ jobs:
       - name: Run Django system checks
         run: python manage.py check
       - name: Run account and property tests
-        run: python manage.py test accounts.tests property.tests booking.tests services.tests property.feedback_tests property.interaction_tests --verbosity 2
+        run: python manage.py test accounts.tests property.tests booking.tests services.tests property.feedback_tests property.interaction_tests property.report_tests --verbosity 2
 
   frontend:
     name: React and TypeScript build
