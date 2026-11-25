@@ -147,9 +147,6 @@ class PropertyContentReportListCreate(generics.ListCreateAPIView):
             return queryset
         return queryset.filter(reporter=self.request.user)
 
-    def perform_create(self, serializer):
-
-
 class PropertyContentReportStatusUpdate(generics.UpdateAPIView):
     queryset = PropertyContentReport.objects.all()
     serializer_class = PropertyContentReportStatusSerializer
