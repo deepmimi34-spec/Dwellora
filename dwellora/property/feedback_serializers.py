@@ -191,3 +191,63 @@ class PropertyInteractionStatusSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error.message_dict) from error
         instance.save(update_fields=['status', 'updated_at'])
         return instance
+
+
+class PropertyContentReportSerializer(serializers.ModelSerializer):
+    reporter_username = serializers.CharField(source='reporter.username', read_only=True)
+    status = serializers.CharField(read_only=True)
+    reviewed_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    reviewed_at = serializers.DateTimeField(read_only=True)
+    resolution_note = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = PropertyContentReport
+        fields = (
+            'id', 'review', 'comment', 'reason', 'details',
+            'reporter_username', 'status', 'reviewed_by',
+            'reviewed_at', 'resolution_note', 'created_at',
+        )
+        read_only_fields = (
+            'id', 'reporter_username', 'status', 'reviewed_by',
+            'reviewed_at', 'resolution_note', 'created_at',
+        )
+
+    def validate(self, attrs):
+        review = attrs.get('review')
+        comment = attrs.get('comment')
+        if bool(review) == bool(comment):
+            raise serializers.ValidationError(
+                'Choose exactly one review or comment to report.'
+            )
+        request = self.context.get('request')
+        if review and review.interaction.profile_id == request.user.pk:
+            raise serializers.ValidationError('You cannot report your own review.')
+        if comment and comment.author_id == request.user.pk:
+            raise serializers.ValidationError('You cannot report your own comment.')
+        if PropertyContentReport.objects.filter(
+            reporter=request.user, review=review, comment=comment
+        ).exists():
+            raise serializers.ValidationError(
+                'You have already reported this content.'
+            )
+        return attrs
+
+    def create(self, validated_data):
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
+        report = PropertyContentReport(
+            reporter=self.context['request'].user,
+            **validated_data,
+        )
+        try:
+            report.full_clean()
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(error.message_dict) from error
+        report.save()
+        return report
+
+
+class PropertyContentReportStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertyContentReport
+        fields = ('status', 'resolution_note')
