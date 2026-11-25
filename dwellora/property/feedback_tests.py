@@ -108,7 +108,7 @@ class PropertyInteractionVerificationTests(PropertyFeedbackFixture):
         interaction.mark_verified(self.staff)
         interaction.refresh_from_db()
 
-        self.assertTrue(interaction.is_review_eligible)
+        self.assertTrue(interaction.is_review_eligible())
         self.assertEqual(interaction.verified_by_id, self.staff.pk)
         self.assertIsNotNone(interaction.verified_at)
 
