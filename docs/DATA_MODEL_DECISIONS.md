@@ -81,11 +81,11 @@ Do not collect device identifiers, location or diagnostic details unless needed,
 2. Reconcile current apps/models and establish the custom user model's initial migration strategy.
 3. Decide whether `Property` needs a safe backfill for existing records and introduce ownership/authority without breaking legacy entries.
 4. Introduce Listing and structured cost/availability records with a data-preserving migration plan.
-5. Introduce viewing/booking interactions and the eligibility rules.
-6. Add ListingDiscussion for questions and lister replies with reporting and moderation.
-7. Add PropertyReview only once eligible interactions can be verified.
+5. Introduce viewing/booking interactions and the eligibility rules. **Model, workflow views and tests have been implemented on the stabilization branch.**
+6. Add ListingDiscussion for questions and lister replies with reporting and moderation. **Property questions/comments and staff content reporting have been implemented and tested; authorised lister replies still depend on the ownership model.**
+7. Add PropertyReview only once eligible interactions can be verified. **Verified-interaction review models, serializers, moderation views and tests are implemented.**
 8. Add ProductFeedback and the internal triage workflow.
-9. Enable the consumer-facing endpoints and pages only after permission tests and migration checks pass.
+9. Generate and inspect migrations against a development copy of the current database, then enable the consumer-facing endpoints only after permission and migration tests pass.
 
 ## 5. Migration and deployment safeguards
 
@@ -121,3 +121,19 @@ The stabilization branch currently exposes a limited set of endpoints:
 - Booking list/create/update/delete are staff-only until the booking model records the customer. Date validation and unavailable-unit rejection are in place.
 
 Other property-type API modules remain unmounted while their imports, model references and permissions are reconciled. The current property and service APIs are not a substitute for the future consumer-facing marketplace experience.
+
+
+## 8. Implemented feedback workflow (not yet live)
+
+The stabilization branch now contains code and tests for:
+- A member creates a viewing/tenancy/stay/purchase interaction request; the API assigns the authenticated profile server-side.
+- Members can list only their own interactions. Staff can see the full queue.
+- Only staff can mark an interaction completed and verify it. Verification records the staff account and timestamp.
+- One review is allowed per eligible interaction. An eligible interaction must be completed and staff-verified. The review includes separate category ratings and starts pending moderation.
+- Members can post property questions/comments, which start pending moderation. Staff responses are marked as official and published.
+- Public review/comment lists expose only published content. Authors can see their own pending comments; authors can delete only their own pending comments.
+- Members can report someone else's review or comment once. They cannot report their own content. Reports are visible to the reporting member and staff; only staff can record a resolution.
+
+The URL definitions are in `property/feedback_urls.py` and are **not included by the active root URLConf**. The models are not backed by an approved migration set. The 60-test CI run passed on the branch, but this is not permission to expose the endpoints against a deployed database with missing tables.
+
+The remaining feedback-product gap is a dedicated Dwellora product-feedback board for bugs, accessibility issues and feature requests. The reviewed lister right-of-reply also waits for a properly authorised owner/lister model.
