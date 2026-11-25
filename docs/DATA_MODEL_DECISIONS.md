@@ -110,3 +110,14 @@ The review and comments feature is not ready until:
 - Moderators can hide/reinstate content with an audit reason.
 - Personal contact details and verification evidence are never exposed in public API responses.
 - Product feedback can be classified, prioritised and closed with a user-visible status update.
+
+
+## 7.5. Current safe API boundary
+
+The stabilization branch currently exposes a limited set of endpoints:
+- Account registration, JWT token issuance/refresh, and self-only profile reading/updating/deletion.
+- Public property list and detail reads. Property create/update/delete are staff-only because the Property model does not yet track an owner or authorised lister.
+- Public service-provider directory. Creating a provider profile requires authentication, and the OneToOne profile relationship is assigned by the server. Updates/deletion are scoped to the authenticated provider.
+- Booking list/create/update/delete are staff-only until the booking model records the customer. Date validation and unavailable-unit rejection are in place.
+
+Other property-type API modules remain unmounted while their imports, model references and permissions are reconciled. The current property and service APIs are not a substitute for the future consumer-facing marketplace experience.
