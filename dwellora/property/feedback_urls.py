@@ -1,13 +1,24 @@
 """Not mounted from the active API URLConf until migrations are applied."""
 from django.urls import path
+
 from .feedback_views import (
-    PropertyCommentCreate, PropertyCommentDelete, PropertyCommentList,
-    PropertyCommentModerationUpdate, PropertyContentReportListCreate,\n    PropertyContentReportStatusUpdate, PropertyInteractionListCreate,
-    PropertyInteractionStatusUpdate, PropertyInteractionVerify,
-    PropertyReviewCreate, PropertyReviewList, PropertyReviewModerationUpdate,
+    PropertyCommentCreate,
+    PropertyCommentDelete,
+    PropertyCommentList,
+    PropertyCommentModerationUpdate,
+    PropertyContentReportListCreate,
+    PropertyContentReportStatusUpdate,
+    PropertyInteractionListCreate,
+    PropertyInteractionStatusUpdate,
+    PropertyInteractionVerify,
+    PropertyReviewCreate,
+    PropertyReviewList,
+    PropertyReviewModerationUpdate,
 )
 
-urlpatterns = [\n    path('reports/', PropertyContentReportListCreate.as_view(), name='property-content-reports'),\n    path('reports/<int:pk>/status/', PropertyContentReportStatusUpdate.as_view(), name='property-content-report-status'),
+urlpatterns = [
+    path('reports/', PropertyContentReportListCreate.as_view(), name='property-content-reports'),
+    path('reports/<int:pk>/status/', PropertyContentReportStatusUpdate.as_view(), name='property-content-report-status'),
     path('interactions/', PropertyInteractionListCreate.as_view(), name='property-interactions'),
     path('interactions/<int:pk>/status/', PropertyInteractionStatusUpdate.as_view(), name='property-interaction-status'),
     path('interactions/<int:pk>/verify/', PropertyInteractionVerify.as_view(), name='property-interaction-verify'),
