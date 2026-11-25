@@ -1,8 +1,10 @@
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from .models import Profile
 from .serializers import ProfileSerializer
+from .views import ProfileDelete, ProfileList, ProfileUpdate
 
 
 class ProfilePasswordTests(TestCase):
@@ -20,6 +22,7 @@ class ProfilePasswordTests(TestCase):
 
         self.assertNotEqual(profile.password, raw_password)
         self.assertTrue(check_password(raw_password, profile.password))
+        self.assertNotIn('password', serializer.data)
 
     def test_account_creation_requires_password(self):
         serializer = ProfileSerializer(data={
@@ -70,3 +73,53 @@ class ProfilePasswordTests(TestCase):
         updated_profile = serializer.save()
 
         self.assertTrue(updated_profile.check_password(raw_new_password))
+
+
+class ProfilePrivacyTests(TestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.owner = Profile.objects.create_user(
+            username='profile_owner',
+            password='A-strong-password-948!',
+            bio='Owner',
+        )
+        self.other = Profile.objects.create_user(
+            username='other_member',
+            password='A-strong-password-948!',
+            bio='Other',
+        )
+
+    def test_profile_list_returns_only_authenticated_profile(self):
+        request = self.factory.get('/profile/view_details/')
+        force_authenticate(request, user=self.owner)
+
+        response = ProfileList.as_view()(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item['id'] for item in response.data], [self.owner.id])
+
+    def test_profile_update_changes_only_authenticated_profile(self):
+        request = self.factory.patch(
+            '/profile/update/',
+            {'bio': 'Updated by owner'},
+            format='json',
+        )
+        force_authenticate(request, user=self.owner)
+
+        response = ProfileUpdate.as_view()(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.owner.refresh_from_db()
+        self.other.refresh_from_db()
+        self.assertEqual(self.owner.bio, 'Updated by owner')
+        self.assertEqual(self.other.bio, 'Other')
+
+    def test_profile_delete_deletes_only_authenticated_profile(self):
+        request = self.factory.delete('/profile/delete/')
+        force_authenticate(request, user=self.owner)
+
+        response = ProfileDelete.as_view()(request)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Profile.objects.filter(pk=self.owner.pk).exists())
+        self.assertTrue(Profile.objects.filter(pk=self.other.pk).exists())
