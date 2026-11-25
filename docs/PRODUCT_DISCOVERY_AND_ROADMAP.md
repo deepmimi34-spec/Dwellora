@@ -199,13 +199,21 @@ The source list below records the public material used for this product discover
 This document is the product direction and acceptance baseline, not a claim that every feature is already implemented.
 
 **Now enabled in the stabilization branch:**
-- JWT sign-up, token issue/refresh and authenticated profile access.
+- JWT account registration, token issue/refresh and authenticated profile access.
 - Public property listing and detail reads.
 - Staff-only property creation, editing and deletion until owner/lister relationships are modelled.
 - Public service-provider directory; authenticated provider-profile creation; owner-scoped provider-profile update and deletion.
 - Staff-only booking management until booking ownership is represented, with date and unit-availability validation.
 - Responsive sign-in/register screens and a workspace limited to currently mounted API resources.
 
-**Still planned, not released:** transparent full-cost listing breakdowns, listing freshness and confirmation history, public property questions/comments, verified-experience reviews, moderation/appeals, and the Dwellora product feedback centre.
+**Implemented and tested, but not yet publicly released:**
+- Property interaction records for viewing, tenancy, short stay and purchase.
+- Member-owned interaction requests; staff-only completion and verification.
+- Reviews tied to one completed, staff-verified interaction, with one review per interaction and category ratings.
+- Property questions/comments with member moderation queue and official staff responses.
+- Reporting for abusive, misleading, spam or privacy-violating reviews/comments; users see their own reports and staff can record a resolution.
+- Separate feedback URL configuration so these features can be mounted only after database migrations are reviewed and applied.
 
-Public reviews must stay gated until Dwellora can associate a reviewer with a completed and verified viewing, tenancy, stay or transaction. Comments and reviews need separate moderation and permission rules. The current Property model still lacks an owner/lister relationship, and the project has no reviewed migration set. No production migrations have been generated or applied. Before adding schema and switching on public feedback, inspect the deployed database, take a backup and prepare a data-preserving migration plan.
+The latest completed CI run discovered **60 backend tests and all 60 passed**, including interaction ownership, verification, review eligibility, comment moderation and content reporting. Frontend production build and Django checks also passed. These tests validate the code, not a production migration.
+
+**Still planned:** transparent full-cost listing breakdowns, listing freshness/confirmation history, owner-authorised lister replies, a dedicated Dwellora product-feedback centre, appeals and a public marketplace experience. Reviews/comments remain unavailable from the active API because their model migrations have not been generated/applied. The current Property model also lacks a verified owner/lister relationship. No production migrations have been generated or applied. Before exposing these routes, inspect the deployed database, take a backup and prepare a data-preserving migration plan.
