@@ -1,21 +1,16 @@
-"""Feedback endpoints are intentionally not included in the active API URLConf.
-
-Mount this URL set only after the reviewed migrations for PropertyInteraction,
-PropertyReview and PropertyComment have been applied to the target database.
-"""
+"""Not mounted from the active API URLConf until migrations are applied."""
 from django.urls import path
-
 from .feedback_views import (
-    PropertyCommentCreate,
-    PropertyCommentDelete,
-    PropertyCommentList,
-    PropertyCommentModerationUpdate,
-    PropertyReviewCreate,
-    PropertyReviewList,
-    PropertyReviewModerationUpdate,
+    PropertyCommentCreate, PropertyCommentDelete, PropertyCommentList,
+    PropertyCommentModerationUpdate, PropertyInteractionListCreate,
+    PropertyInteractionStatusUpdate, PropertyInteractionVerify,
+    PropertyReviewCreate, PropertyReviewList, PropertyReviewModerationUpdate,
 )
 
 urlpatterns = [
+    path('interactions/', PropertyInteractionListCreate.as_view(), name='property-interactions'),
+    path('interactions/<int:pk>/status/', PropertyInteractionStatusUpdate.as_view(), name='property-interaction-status'),
+    path('interactions/<int:pk>/verify/', PropertyInteractionVerify.as_view(), name='property-interaction-verify'),
     path('<int:property_pk>/reviews/', PropertyReviewList.as_view(), name='property-review-list'),
     path('<int:property_pk>/reviews/create/', PropertyReviewCreate.as_view(), name='property-review-create'),
     path('reviews/<int:pk>/moderation/', PropertyReviewModerationUpdate.as_view(), name='property-review-moderation'),
