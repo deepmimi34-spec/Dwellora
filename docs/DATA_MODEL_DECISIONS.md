@@ -89,6 +89,8 @@ Do not collect device identifiers, location or diagnostic details unless needed,
 
 ## 5. Migration and deployment safeguards
 
+Until an explicit owner/lister relationship is implemented and backfilled safely, property update and delete endpoints must remain staff-only. Ordinary authenticated users must not be allowed to change or remove listings belonging to other people. This is a temporary safety boundary, not the final landlord/agent workflow.
+
 - Do not run `makemigrations` or `migrate` against production until current database tables, row counts and backups are inspected.
 - For existing property rows, add new relationships as nullable first, preserve legacy records, and create an explicit reviewed backfill process. Do not infer that a user owns a legacy listing because they happen to be an administrator or creator in an unrelated record.
 - Generate and inspect migrations in a development copy, run migration tests against a copy of the current database, and test rollback/restore procedures.
