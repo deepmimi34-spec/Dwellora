@@ -30,29 +30,14 @@ class Property(models.Model):
     ]
 
     title = models.CharField(max_length=100)
-
-    property_type = models.CharField(
-        max_length=20,
-        choices=PROPERTY_CHOICES
-    )
-
-    region = models.CharField(
-        max_length=50,
-        choices=LOCATION_CHOICES
-    )
+    property_type = models.CharField(max_length=20, choices=PROPERTY_CHOICES)
+    region = models.CharField(max_length=50, choices=LOCATION_CHOICES)
     city = models.CharField(max_length=50, blank=True, help_text='e.g., Kumasi, Accra')
-
     furnished = models.BooleanField(default=False)
-
     parking = models.BooleanField(default=False)
-
     water_available = models.BooleanField(default=False)
-
     internet_available = models.BooleanField(default=False)
-
     kitchen_available = models.BooleanField(default=False)
-
-
 
     class Meta:
         db_table = 'property'
@@ -62,9 +47,8 @@ class Property(models.Model):
         return self.title
 
     def is_property_complete(self):
-        return bool(
-            self.title
-            and self.location
-        )
+        """Return whether the required listing identity and region are present.
 
-
+        City is optional in the current schema, so it is not required here.
+        """
+        return bool(self.title and self.region)
