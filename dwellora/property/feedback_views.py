@@ -5,10 +5,12 @@ from rest_framework import generics, permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import PropertyComment, PropertyInteraction, PropertyReview
+from .models import PropertyComment, PropertyContentReport, PropertyInteraction, PropertyReview
 from .feedback_serializers import (
     PropertyCommentModerationSerializer,
     PropertyCommentSerializer,
+    PropertyContentReportSerializer,
+    PropertyContentReportStatusSerializer,
     PropertyInteractionSerializer,
     PropertyInteractionStatusSerializer,
     PropertyReviewModerationSerializer,
@@ -130,4 +132,34 @@ class PropertyInteractionVerify(APIView):
         return Response(
             PropertyInteractionSerializer(interaction).data,
             status=status.HTTP_200_OK,
+        )
+
+
+class PropertyContentReportListCreate(generics.ListCreateAPIView):
+    serializer_class = PropertyContentReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = PropertyContentReport.objects.select_related(
+            'reporter', 'review', 'comment', 'reviewed_by'
+        )
+        if self.request.user.is_staff:
+            return queryset
+        return queryset.filter(reporter=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(reporter=self.request.user)
+
+
+class PropertyContentReportStatusUpdate(generics.UpdateAPIView):
+    queryset = PropertyContentReport.objects.all()
+    serializer_class = PropertyContentReportStatusSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_update(self, serializer):
+        from django.utils import timezone
+
+        serializer.save(
+            reviewed_by=self.request.user,
+            reviewed_at=timezone.now(),
         )
