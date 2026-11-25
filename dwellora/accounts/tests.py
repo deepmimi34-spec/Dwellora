@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
@@ -167,3 +169,55 @@ class PublicApiRouteTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('access', response.json())
         self.assertIn('refresh', response.json())
+
+
+
+class PublicApiIntegrationTests(TestCase):
+    def test_property_and_service_discovery_routes_are_public(self):
+        from property.models import Property
+
+        Property.objects.create(
+            title='Public apartment',
+            property_type='Apartment',
+            region='Ashanti',
+        )
+
+        property_response = self.client.get('/api/property/property/list/')
+        service_response = self.client.get('/api/services/')
+
+        self.assertEqual(property_response.status_code, 200)
+        self.assertEqual(len(property_response.json()), 1)
+        self.assertEqual(service_response.status_code, 200)
+
+    def test_signup_then_jwt_login_and_profile_access(self):
+        registration = self.client.post(
+            '/api/accounts/profile/',
+            data=json.dumps({
+                'username': 'integration_user',
+                'email': 'integration@example.com',
+                'password': 'A-strong-password-948!',
+                'bio': 'Integration account',
+            }),
+            content_type='application/json',
+        )
+        self.assertEqual(registration.status_code, 201)
+
+        token_response = self.client.post(
+            '/api/auth/token/',
+            data=json.dumps({
+                'username': 'integration_user',
+                'password': 'A-strong-password-948!',
+            }),
+            content_type='application/json',
+        )
+        self.assertEqual(token_response.status_code, 200)
+        access_token = token_response.json()['access']
+
+        profile_response = self.client.get(
+            '/api/accounts/profile/view_details/',
+            HTTP_AUTHORIZATION=f'Bearer {access_token}',
+        )
+        self.assertEqual(profile_response.status_code, 200)
+        self.assertEqual(len(profile_response.json()), 1)
+        self.assertEqual(profile_response.json()[0]['username'], 'integration_user')
+        self.assertFalse(profile_response.json()[0]['is_staff'])
