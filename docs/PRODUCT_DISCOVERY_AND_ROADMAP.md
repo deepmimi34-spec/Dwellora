@@ -196,4 +196,16 @@ The source list below records the public material used for this product discover
 
 ## 8. Implementation note
 
-This is the product direction and acceptance baseline, not a claim that all features are already implemented. The existing repository is still in foundation stabilization: app routes are not all enabled, the custom user model and property ownership design need review, and migrations have not been generated. Implement the trust and feedback features only after those dependencies are settled and tested.
+This document is the product direction and acceptance baseline, not a claim that every feature is already implemented.
+
+**Now enabled in the stabilization branch:**
+- JWT sign-up, token issue/refresh and authenticated profile access.
+- Public property listing and detail reads.
+- Staff-only property creation, editing and deletion until owner/lister relationships are modelled.
+- Public service-provider directory; authenticated provider-profile creation; owner-scoped provider-profile update and deletion.
+- Staff-only booking management until booking ownership is represented, with date and unit-availability validation.
+- Responsive sign-in/register screens and a workspace limited to currently mounted API resources.
+
+**Still planned, not released:** transparent full-cost listing breakdowns, listing freshness and confirmation history, public property questions/comments, verified-experience reviews, moderation/appeals, and the Dwellora product feedback centre.
+
+Public reviews must stay gated until Dwellora can associate a reviewer with a completed and verified viewing, tenancy, stay or transaction. Comments and reviews need separate moderation and permission rules. The current Property model still lacks an owner/lister relationship, and the project has no reviewed migration set. No production migrations have been generated or applied. Before adding schema and switching on public feedback, inspect the deployed database, take a backup and prepare a data-preserving migration plan.
