@@ -24,11 +24,10 @@ On Windows PowerShell, activate the environment with:
 Then run:
 
 ```bash
-python manage.py migrate
 python manage.py runserver
 ```
 
-The default local database is SQLite. Do not point a new migration run at a production database until the existing schema and migration history have been reviewed and backed up.
+The default local database is SQLite. **Do not run migrations yet.** The custom user model and several application models need to be reconciled, and initial migrations must be generated only after that review.
 
 ## Frontend: local setup
 
