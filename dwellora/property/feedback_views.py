@@ -1,10 +1,16 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
-from rest_framework import generics, permissions, serializers
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, permissions, serializers, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import PropertyComment, PropertyReview
+from .models import PropertyComment, PropertyInteraction, PropertyReview
 from .feedback_serializers import (
     PropertyCommentModerationSerializer,
     PropertyCommentSerializer,
+    PropertyInteractionSerializer,
+    PropertyInteractionStatusSerializer,
     PropertyReviewModerationSerializer,
     PropertyReviewSerializer,
 )
@@ -84,4 +90,44 @@ class PropertyCommentDelete(generics.DestroyAPIView):
         return queryset.filter(
             author=self.request.user,
             moderation_status=PropertyComment.ModerationStatus.PENDING,
+        )
+
+
+class PropertyInteractionListCreate(generics.ListCreateAPIView):
+    serializer_class = PropertyInteractionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = PropertyInteraction.objects.select_related(
+            'property', 'profile', 'verified_by'
+        )
+        if self.request.user.is_staff:
+            return queryset
+        return queryset.filter(profile=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(profile=self.request.user)
+
+
+class PropertyInteractionStatusUpdate(generics.UpdateAPIView):
+    queryset = PropertyInteraction.objects.all()
+    serializer_class = PropertyInteractionStatusSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class PropertyInteractionVerify(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, pk):
+        interaction = get_object_or_404(PropertyInteraction, pk=pk)
+        try:
+            interaction.mark_verified(request.user)
+        except DjangoValidationError as error:
+            return Response(
+                {'detail': error.messages},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            PropertyInteractionSerializer(interaction).data,
+            status=status.HTTP_200_OK,
         )
