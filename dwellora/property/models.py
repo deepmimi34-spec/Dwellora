@@ -258,3 +258,89 @@ class PropertyComment(models.Model):
 
     def __str__(self):
         return f'{self.property.title} · {self.body[:60]}'
+
+
+class PropertyContentReport(models.Model):
+    class Reason(models.TextChoices):
+        SPAM = 'spam', 'Spam or advertising'
+        HARASSMENT = 'harassment', 'Harassment or abuse'
+        PRIVATE_INFORMATION = 'private_information', 'Private information'
+        MISLEADING = 'misleading', 'Misleading or fabricated content'
+        CONFLICT_OF_INTEREST = 'conflict_of_interest', 'Conflict of interest'
+        OTHER = 'other', 'Other concern'
+
+    class Status(models.TextChoices):
+        NEW = 'new', 'New'
+        UNDER_REVIEW = 'under_review', 'Under review'
+        ACTIONED = 'actioned', 'Action taken'
+        DISMISSED = 'dismissed', 'Dismissed'
+
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='property_content_reports',
+    )
+    review = models.ForeignKey(
+        PropertyReview,
+        on_delete=models.CASCADE,
+        related_name='reports',
+        blank=True,
+        null=True,
+    )
+    comment = models.ForeignKey(
+        PropertyComment,
+        on_delete=models.CASCADE,
+        related_name='reports',
+        blank=True,
+        null=True,
+    )
+    reason = models.CharField(max_length=30, choices=Reason.choices)
+    details = models.TextField(max_length=2000, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.NEW,
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='reviewed_property_reports',
+        blank=True,
+        null=True,
+    )
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+    resolution_note = models.TextField(max_length=2000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'property_content_report'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reporter', 'review'],
+                condition=models.Q(review__isnull=False),
+                name='unique_reporter_property_review',
+            ),
+            models.UniqueConstraint(
+                fields=['reporter', 'comment'],
+                condition=models.Q(comment__isnull=False),
+                name='unique_reporter_property_comment',
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if bool(self.review_id) == bool(self.comment_id):
+            raise ValidationError('A report must target exactly one review or comment.')
+        if self.review_id and self.review.interaction.profile_id == self.reporter_id:
+            raise ValidationError('You cannot report your own property review.')
+        if self.comment_id and self.comment.author_id == self.reporter_id:
+            raise ValidationError('You cannot report your own property comment.')
+        if self.status != self.Status.NEW:
+            if not self.reviewed_by_id or not self.reviewed_by.is_staff or not self.reviewed_at:
+                raise ValidationError('Report status changes require staff review metadata.')
+
+    def __str__(self):
+        target = f'Review {self.review_id}' if self.review_id else f'Comment {self.comment_id}'
+        return f'{target} reported by {self.reporter.username}'
