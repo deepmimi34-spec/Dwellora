@@ -1,11 +1,11 @@
 from django.db import models
-
 from property.models import Property
+
 
 class HousesBuilding(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='property_Houses')
-    address = models.CharField( max_length=50, help_text='e.g., AK-039-8164')
-    town = models.CharField( max_length=50, help_text='e.g., Santasi, Patasi ')
+    address = models.CharField(max_length=50, help_text='e.g., AK-039-8164')
+    town = models.CharField(max_length=50, help_text='e.g., Santasi, Patasi')
 
     class Meta:
         db_table = 'houses_building'
@@ -17,11 +17,10 @@ class HousesBuilding(models.Model):
 
 class HousesType(models.Model):
     property_house = models.ForeignKey(HousesBuilding, on_delete=models.CASCADE, related_name='property_Houses')
-    rooms_per_house = models.PositiveIntegerField(max_length=20)
-    rooms_with_bathrooms = models.PositiveIntegerField(max_length=20)
+    rooms_per_house = models.PositiveIntegerField()
+    rooms_with_bathrooms = models.PositiveIntegerField()
     living_rooms = models.BooleanField(default=False)
-    bathrooms = models.PositiveIntegerField(max_length=20, default=1)
-
+    bathrooms = models.PositiveIntegerField(default=1)
 
     class Meta:
         db_table = 'houses_type'
@@ -35,11 +34,8 @@ class HousesUnit(models.Model):
         ('rented', 'rented'),
     )
     house_type = models.ForeignKey(HousesType, on_delete=models.CASCADE, related_name='house_type_Houses')
-    status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='available')
-
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
 
     class Meta:
-        db_table = 'hostel_unit'
+        db_table = 'house_unit'
         verbose_name = 'Houses Unit'
-
-# Create your models here.
