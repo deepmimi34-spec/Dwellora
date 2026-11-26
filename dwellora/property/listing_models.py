@@ -230,4 +230,11 @@ class Listing(models.Model):
         if self.billing_period == "month" and not self.advance_months:
             return None
         base = self.price * self.advance_months if self.billing_period == "month" else self.price
-        return base + self.deposit_amount + self.agent_fee_amount + self.viewing_fee_amount + self.service_charge_amount + self.other_fees_amount
+        return base + self.deposit_amount + self.agent_fee_amount + self.viewing_fee_amount + self.service_charge_amount + self.other_fees_amount    def availability_freshness(self):
+        if not self.availability_confirmed_at:
+            return "not_confirmed"
+        if self.availability_confirmed_at < timezone.now() - timedelta(days=30):
+            return "stale"
+        return "fresh"
+
+
