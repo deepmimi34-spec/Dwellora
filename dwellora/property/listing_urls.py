@@ -1,12 +1,15 @@
 from django.urls import path
 from .listing_views import (
-    OwnershipClaimCreate, OwnershipClaimList, OwnershipClaimReview,
+    PractitionerLicenseListCreate, PractitionerLicenseReview, OwnershipClaimCreate, OwnershipClaimList, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationList, ListingAuthorizationReview,
     PublicListingList, PublicListingDetail, MyListingList, ListingCreate,
     ListingUpdate, ListingDelete, ListingSubmit, ListingModeration, ListingAvailabilityConfirm, ListingChargeListCreate, ListingChargeUpdate, ListingChargeDelete,
 )
 
 urlpatterns = [
+    path("licenses/", PractitionerLicenseListCreate.as_view(), name="practitioner-license-create-list"),
+    path("licenses/<int:pk>/review/", PractitionerLicenseReview.as_view(), name="practitioner-license-review"),
+
     path("ownership/claims/", OwnershipClaimCreate.as_view(), name="ownership-claim-create"),
     path("ownership/my-claims/", OwnershipClaimList.as_view(), name="ownership-claim-list"),
     path("ownership/claims/<int:pk>/review/", OwnershipClaimReview.as_view(), name="ownership-claim-review"),
