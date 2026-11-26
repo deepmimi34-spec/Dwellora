@@ -70,7 +70,7 @@ The branch contains tested models and views for viewing/tenancy interactions, ve
 Run the CI test modules from `dwellora/`:
 
 ```bash
-python manage.py test accounts.tests property.tests booking.tests services.tests property.feedback_tests property.interaction_tests property.report_tests --verbosity 2
+python manage.py test accounts.tests property.tests booking.tests services.tests property.feedback_tests property.interaction_tests property.report_tests property.listing_tests property.schema_audit_tests feedback.tests --verbosity 2
 ```
 
 CI also runs `python manage.py check`, Python compilation and the React/TypeScript production build.
