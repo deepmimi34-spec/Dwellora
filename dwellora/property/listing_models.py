@@ -49,6 +49,11 @@ class PropertyOwnership(models.Model):
         self.review_note = note
         self.full_clean()
         self.save(update_fields=["status", "reviewed_by", "reviewed_at", "review_note"])
+        if status == self.Status.REVOKED:
+            for authorization in self.authorizations.filter(status=ListingAuthorization.Status.APPROVED):
+                authorization.review(staff_user, ListingAuthorization.Status.REVOKED, "Underlying ownership was revoked.")
+                for listing in authorization.listings.filter(status=Listing.Status.PUBLISHED):
+                    listing.moderate(staff_user, Listing.Status.PAUSED, "Underlying ownership was revoked.")
         return self
 
 
