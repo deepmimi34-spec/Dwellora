@@ -316,17 +316,17 @@ class ListingArchitectureTests(TestCase):
         )
         fresh = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
-            headline="Fresh listing", price=100, status=Listing.Status.PUBLISHED,
+            headline="Fresh listing", price=100, status=Listing.Status.PUBLISHED, costs_disclosed=True,
             availability_confirmed_at=timezone.now(),
         )
         stale = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
-            headline="Stale listing", price=100, status=Listing.Status.PUBLISHED,
+            headline="Stale listing", price=100, status=Listing.Status.PUBLISHED, costs_disclosed=True,
             availability_confirmed_at=timezone.now() - timedelta(days=31),
         )
         expired = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
-            headline="Expired listing", price=100, status=Listing.Status.PUBLISHED,
+            headline="Expired listing", price=100, status=Listing.Status.PUBLISHED, costs_disclosed=True,
             availability_confirmed_at=timezone.now(), expires_at=timezone.localdate() - timedelta(days=1),
         )
         request = self.factory.get("/listings/")
