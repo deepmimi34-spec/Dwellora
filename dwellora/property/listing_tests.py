@@ -238,7 +238,7 @@ class ListingArchitectureTests(TestCase):
             listing.full_clean()
 
     def test_upfront_total_calculates_rent_advance_and_fees(self):
-        listing = Listing(lister=self.owner, property=self.property, offer_type="rent", headline="Cost calculation", price=1500, billing_period="month", advance_months=12, deposit_amount=500, agent_fee_amount=1000, service_charge_amount=100)
+        listing = Listing(lister=self.owner, property=self.property, offer_type="rent", headline="Cost calculation", price=1500, billing_period="month", advance_months=12, deposit_amount=500, agent_fee_amount=1000, service_charge_amount=100, costs_disclosed=True)
         self.assertEqual(listing.estimated_upfront_total, 19600)
 
     def test_listing_requires_moderation_metadata_when_published(self):
