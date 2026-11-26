@@ -4,7 +4,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.models import Profile
 from property.models import Property
-from property.listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
+from property.listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
 from property.listing_views import (
     OwnershipClaimCreate, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationReview,
@@ -44,8 +44,25 @@ class ListingArchitectureTests(TestCase):
         self.assertEqual(response.status_code, 200)
         claim.refresh_from_db()
 
+
+    def verify_agent_license(self):
+        license_record = PractitionerLicense.objects.create(
+            profile=self.agent,
+            license_number="REAC/2026/A/TEST-001",
+            license_type=PractitionerLicense.LicenseType.AGENT,
+            source_url="https://reac.gov.gh/public-registry-search/",
+        )
+        license_record.review(
+            self.staff,
+            PractitionerLicense.Status.VERIFIED,
+            source_checked_at=timezone.now(),
+            valid_until=timezone.localdate() + timedelta(days=365),
+            note="Registry entry checked in test.",
+        )
+        return license_record
+
     def authorize_agent(self, claim):
-        request = self.factory.post("/authorizations/", {
+        self.verify_agent_license()\n        request = self.factory.post("/authorizations/", {
             "property": self.property.pk,
             "ownership": claim.pk,
             "authority_type": ListingAuthorization.AuthorityType.AGENT,
@@ -421,3 +438,43 @@ class ListingArchitectureTests(TestCase):
         with self.assertRaises(ValidationError):
             listing.submit_for_review()
         self.assertEqual(listing.status, Listing.Status.DRAFT)
+
+    def test_only_staff_can_verify_practitioner_license(self):
+        license_record = PractitionerLicense.objects.create(
+            profile=self.agent,
+            license_number="REAC/2026/A/TEST-002",
+            license_type=PractitionerLicense.LicenseType.AGENT,
+        )
+        request = self.factory.patch(f"/licenses/{license_record.pk}/review/", {
+            "status": PractitionerLicense.Status.VERIFIED,
+            "source_checked_at": timezone.now(),
+            "valid_until": timezone.localdate() + timedelta(days=365),
+        }, format="json")
+        force_authenticate(request, user=self.agent)
+        response = PractitionerLicenseReview.as_view()(request, pk=license_record.pk)
+        self.assertEqual(response.status_code, 403)
+
+    def test_authorization_approval_requires_current_reac_license(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        request = self.factory.post("/authorizations/", {
+            "property": self.property.pk, "ownership": claim.pk, "authority_type": "agent",
+            "evidence_type": "Mandate", "evidence_reference": "private://mandate",
+        }, format="json")
+        force_authenticate(request, user=self.agent)
+        response = ListingAuthorizationCreate.as_view()(request)
+        auth = ListingAuthorization.objects.get(pk=response.data["id"])
+        review = self.factory.post(f"/authorizations/{auth.pk}/review/", {
+            "status": ListingAuthorization.Status.APPROVED,
+        }, format="json")
+        force_authenticate(review, user=self.staff)
+        review_response = ListingAuthorizationReview.as_view()(review, pk=auth.pk)
+        self.assertEqual(review_response.status_code, 400)
+        auth.refresh_from_db()
+        self.assertEqual(auth.status, ListingAuthorization.Status.REQUESTED)
+
+    def test_verified_license_is_explicitly_recorded(self):
+        license_record = self.verify_agent_license()
+        self.assertTrue(license_record.is_current())
+        self.assertEqual(license_record.reviewed_by_id, self.staff.pk)
+        self.assertEqual(license_record.license_type, PractitionerLicense.LicenseType.AGENT)
