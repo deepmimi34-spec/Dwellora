@@ -281,9 +281,11 @@ class Listing(models.Model):
         return PropertyOwnership.objects.filter(property=self.property, claimant=self.lister, status=PropertyOwnership.Status.VERIFIED).exists()
 
     def can_publish(self):
+        latest_confirmation = self.availability_confirmations.order_by("-confirmed_at", "-pk").first()
         confirmed_recently = (
-            self.availability_confirmed_at is not None
-            and self.availability_confirmed_at >= timezone.now() - timedelta(days=30)
+            latest_confirmation is not None
+            and latest_confirmation.is_available
+            and latest_confirmation.confirmed_at >= timezone.now() - timedelta(days=30)
         )
         return (
             self.has_current_authority()
@@ -379,12 +381,14 @@ class ListingAvailabilityConfirmation(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-        if self.is_available:
-            self.listing.availability_confirmed_at = self.confirmed_at
-            self.listing.save(update_fields=["availability_confirmed_at", "updated_at"])
-        elif self.listing.status == Listing.Status.PUBLISHED:
+
+        # Every confirmation supersedes the previous availability state.
+        self.listing.availability_confirmed_at = self.confirmed_at
+        update_fields = ["availability_confirmed_at", "updated_at"]
+        if not self.is_available and self.listing.status == Listing.Status.PUBLISHED:
             self.listing.status = Listing.Status.PAUSED
-            self.listing.save(update_fields=["status", "updated_at"])
+            update_fields.append("status")
+        self.listing.save(update_fields=update_fields)
 
 class ListingCharge(models.Model):
     class ChargeType(models.TextChoices):
