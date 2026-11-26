@@ -8,7 +8,7 @@ from property.listing_models import PropertyOwnership, ListingAuthorization, Lis
 from property.listing_views import (
     OwnershipClaimCreate, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationReview,
-    ListingCreate, ListingSubmit, ListingModeration,
+    ListingCreate, ListingSubmit, ListingModeration, ListingAvailabilityConfirm,
     PublicListingList, MyListingList, ListingUpdate, ListingDelete,
 )
 
