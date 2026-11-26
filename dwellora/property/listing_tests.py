@@ -9,7 +9,7 @@ from property.models import Property
 from property.listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
 from property.listing_serializers import PractitionerLicenseSerializer, ListingSerializer
 from property.listing_views import (
-    OwnershipClaimCreate, OwnershipClaimReview,
+    OwnershipClaimCreate, OwnershipClaimReview, PractitionerLicenseReview,
     ListingAuthorizationCreate, ListingAuthorizationReview,
     ListingCreate, ListingSubmit, ListingModeration, ListingAvailabilityConfirm, ListingChargeListCreate,
     PublicListingList, MyListingList, ListingUpdate, ListingDelete,
@@ -491,7 +491,7 @@ class ListingArchitectureTests(TestCase):
         )
         serialized = ListingSerializer(listing).data
         self.assertEqual(serialized["lister_license_summary"]["status"], "verified")
-        self.assertEqual(serialized["lister_license_summary"]["number_masked"], "••••T-001")
+        self.assertEqual(serialized["lister_license_summary"]["number_masked"], "••••-001")
         self.assertNotIn(license_record.license_number, str(serialized))
 
     def test_non_official_license_registry_url_rejected(self):
