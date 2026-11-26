@@ -7,8 +7,8 @@ from rest_framework import generics, permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
-from .listing_serializers import PropertyOwnershipSerializer, ListingAuthorizationSerializer, ListingSerializer, ListingModerationSerializer, ListingAvailabilityConfirmationSerializer
+from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
+from .listing_serializers import PropertyOwnershipSerializer, ListingAuthorizationSerializer, ListingSerializer, ListingModerationSerializer, ListingAvailabilityConfirmationSerializer, ListingChargeSerializer
 
 
 class OwnershipClaimCreate(generics.CreateAPIView):
@@ -147,3 +147,32 @@ class ListingAvailabilityConfirm(APIView):
         serializer.is_valid(raise_exception=True)
         confirmation = serializer.save(listing=listing, confirmed_by=request.user)
         return Response(ListingAvailabilityConfirmationSerializer(confirmation).data, status=status.HTTP_201_CREATED)
+
+class ListingChargeListCreate(generics.ListCreateAPIView):
+    serializer_class = ListingChargeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        listing = get_object_or_404(Listing, pk=self.kwargs["listing_pk"])
+        if listing.lister_id != self.request.user.pk and not self.request.user.is_staff:
+            return ListingCharge.objects.none()
+        return ListingCharge.objects.filter(listing=listing).select_related("listing", "created_by")
+
+    def perform_create(self, serializer):
+        listing = get_object_or_404(Listing, pk=self.kwargs["listing_pk"], lister=self.request.user, status__in=[Listing.Status.DRAFT, Listing.Status.REJECTED])
+        serializer.save(listing=listing, created_by=self.request.user)
+
+
+class ListingChargeUpdate(generics.UpdateAPIView):
+    serializer_class = ListingChargeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ListingCharge.objects.filter(listing__lister=self.request.user, listing__status__in=[Listing.Status.DRAFT, Listing.Status.REJECTED])
+
+
+class ListingChargeDelete(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ListingCharge.objects.filter(listing__lister=self.request.user, listing__status=Listing.Status.DRAFT)
