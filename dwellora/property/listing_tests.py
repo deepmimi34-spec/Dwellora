@@ -7,7 +7,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from accounts.models import Profile
 from property.models import Property
 from property.listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
-from property.listing_views import (
+from property.listing_serializers import PractitionerLicenseSerializer, ListingSerializer\nfrom property.listing_views import (
     OwnershipClaimCreate, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationReview,
     ListingCreate, ListingSubmit, ListingModeration, ListingAvailabilityConfirm, ListingChargeListCreate,
@@ -481,3 +481,36 @@ class ListingArchitectureTests(TestCase):
         self.assertTrue(license_record.is_current())
         self.assertEqual(license_record.reviewed_by_id, self.staff.pk)
         self.assertEqual(license_record.license_type, PractitionerLicense.LicenseType.AGENT)
+
+    def test_listing_exposes_masked_current_reac_check(self):
+        license_record = self.verify_agent_license()
+        listing = Listing.objects.create(
+            lister=self.agent, property=self.property, offer_type="rent",
+            headline="Agent listed", price=100, costs_disclosed=True,
+        )
+        serialized = ListingSerializer(listing).data
+        self.assertEqual(serialized["lister_license_summary"]["status"], "verified")
+        self.assertEqual(serialized["lister_license_summary"]["number_masked"], "••••TEST-001")
+        self.assertNotIn(license_record.license_number, str(serialized))
+
+    def test_non_official_license_registry_url_rejected(self):
+        serializer = PractitionerLicenseSerializer(data={
+            "license_number": "REAC-FAKE-123",
+            "license_type": "agent",
+            "source_url": "https://fake-registry.example/",
+        })
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("source_url", serializer.errors)
+
+    def test_expired_license_is_not_current(self):
+        license_record = PractitionerLicense.objects.create(
+            profile=self.agent,
+            license_number="REAC/2026/A/TEST-003",
+            license_type=PractitionerLicense.LicenseType.AGENT,
+        )
+        license_record.review(
+            self.staff,
+            PractitionerLicense.Status.VERIFIED,
+            source_checked_at=timezone.now(),
+            valid_until=timezone.localdate() - timedelta(days=1),
+        )
