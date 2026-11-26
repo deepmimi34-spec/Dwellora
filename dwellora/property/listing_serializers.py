@@ -90,7 +90,8 @@ class ListingChargeSerializer(serializers.ModelSerializer):
         return value
 
 class ListingSerializer(serializers.ModelSerializer):
-    charges = ListingChargeSerializer(many=True, read_only=True)\n    lister_license_summary = serializers.SerializerMethodField()
+    charges = ListingChargeSerializer(many=True, read_only=True)
+    lister_license_summary = serializers.SerializerMethodField()
     lister = serializers.PrimaryKeyRelatedField(read_only=True)
     status = serializers.CharField(read_only=True)
     property_title = serializers.CharField(source="property.title", read_only=True)
