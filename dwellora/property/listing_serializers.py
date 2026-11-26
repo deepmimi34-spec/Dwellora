@@ -64,7 +64,8 @@ class ListingChargeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Charge amount cannot be negative.")
         return value
 
-class ListingSerializer(serializers.ModelSerializer):\n    charges = ListingChargeSerializer(many=True, read_only=True)
+class ListingSerializer(serializers.ModelSerializer):
+    charges = ListingChargeSerializer(many=True, read_only=True)
     lister = serializers.PrimaryKeyRelatedField(read_only=True)
     status = serializers.CharField(read_only=True)
     property_title = serializers.CharField(source="property.title", read_only=True)
