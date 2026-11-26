@@ -20,6 +20,7 @@ class PractitionerLicenseSerializer(serializers.ModelSerializer):
         model = PractitionerLicense
         fields = ("id", "profile", "license_number", "license_type", "status", "valid_until", "source_checked_at", "source_url", "evidence_reference", "reviewed_by", "reviewed_at", "review_note", "created_at")
         read_only_fields = ("id", "profile", "status", "reviewed_by", "reviewed_at", "review_note", "created_at")
+        extra_kwargs = {"evidence_reference": {"write_only": True}}
 
 
 class PractitionerLicenseReviewSerializer(serializers.Serializer):
@@ -39,6 +40,7 @@ class PropertyOwnershipSerializer(serializers.ModelSerializer):
         model = PropertyOwnership
         fields = ("id", "property", "claimant", "ownership_type", "evidence_type", "evidence_reference", "status", "submitted_at", "reviewed_by", "reviewed_at", "review_note")
         read_only_fields = ("id", "claimant", "status", "submitted_at", "reviewed_by", "reviewed_at", "review_note")
+        extra_kwargs = {"evidence_reference": {"write_only": True}}
 
     def validate(self, attrs):
         request = self.context["request"]
@@ -59,6 +61,7 @@ class ListingAuthorizationSerializer(serializers.ModelSerializer):
         model = ListingAuthorization
         fields = ("id", "property", "ownership", "lister", "authority_type", "evidence_type", "evidence_reference", "status", "valid_from", "valid_until", "reviewed_by", "reviewed_at", "review_note")
         read_only_fields = ("id", "lister", "status", "reviewed_by", "reviewed_at", "review_note")
+        extra_kwargs = {"evidence_reference": {"write_only": True}}
 
     def validate(self, attrs):
         request = self.context["request"]
@@ -99,7 +102,13 @@ class ListingSerializer(serializers.ModelSerializer):
     availability_freshness = serializers.CharField(read_only=True)
     moderated_by = serializers.PrimaryKeyRelatedField(read_only=True)
     moderated_at = serializers.DateTimeField(read_only=True)
-    moderation_note = serializers.CharField(read_only=True)
+    moderation_note = serializers.SerializerMethodField()
+
+    def get_moderation_note(self, obj):
+        request = self.context.get("request")
+        if request and (request.user.is_staff or request.user.pk == obj.lister_id):
+            return obj.moderation_note
+        return None
 
 
     def get_lister_license_summary(self, obj):
