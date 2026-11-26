@@ -227,12 +227,31 @@ class Listing(models.Model):
         self.save(update_fields=["status", "moderated_by", "moderated_at", "moderation_note", "published_at", "updated_at"])
         return self
 
-    @builtin_property
+        @builtin_property
     def estimated_upfront_total(self):
-        if self.billing_period == "month" and not self.advance_months:
+        if self.offer_type == self.OfferType.SHORT_STAY and self.billing_period == "night":
             return None
-        base = self.price * self.advance_months if self.billing_period == "month" else self.price
-        return base + self.deposit_amount + self.agent_fee_amount + self.viewing_fee_amount + self.service_charge_amount + self.other_fees_amount
+        if self.offer_type == self.OfferType.RENT and self.billing_period == "month" and not self.advance_months:
+            return None
+        base = self.price * self.advance_months if self.offer_type == self.OfferType.RENT and self.billing_period == "month" else self.price
+        total = base + self.deposit_amount + self.agent_fee_amount + self.viewing_fee_amount + self.service_charge_amount + self.other_fees_amount
+        payer = "tenant" if self.offer_type == self.OfferType.RENT else "buyer"
+        for charge in self.charges.all():
+            if charge.frequency != ListingCharge.Frequency.ONE_TIME:
+                continue
+            if charge.is_required is False:
+                continue
+            if charge.is_required is None:
+                if charge.payer in (payer, "shared", "not_specified"):
+                    return None
+                continue
+            if charge.payer in ("shared", "not_specified"):
+                return None
+            if charge.payer == payer:
+                if charge.amount is None:
+                    return None
+                total += charge.amount
+        return total
 
     def availability_freshness(self):
         if not self.availability_confirmed_at:
@@ -268,3 +287,53 @@ class ListingAvailabilityConfirmation(models.Model):
         elif self.listing.status == Listing.Status.PUBLISHED:
             self.listing.status = Listing.Status.PAUSED
             self.listing.save(update_fields=["status", "updated_at"])
+
+class ListingCharge(models.Model):
+    class ChargeType(models.TextChoices):
+        DEPOSIT = "deposit", "Security deposit"
+        AGENT_FEE = "agent_fee", "Agent commission"
+        VIEWING_FEE = "viewing_fee", "Viewing fee"
+        SERVICE_CHARGE = "service_charge", "Service charge"
+        UTILITIES = "utilities", "Utilities"
+        MAINTENANCE = "maintenance", "Maintenance"
+        OTHER = "other", "Other"
+
+    class Payer(models.TextChoices):
+        TENANT = "tenant", "Tenant"
+        BUYER = "buyer", "Buyer"
+        LISTER = "lister", "Lister"
+        OWNER = "owner", "Property owner"
+        SHARED = "shared", "Shared"
+        NOT_SPECIFIED = "not_specified", "Not specified"
+
+    class Frequency(models.TextChoices):
+        ONE_TIME = "one_time", "One-time"
+        MONTHLY = "monthly", "Monthly"
+        YEARLY = "yearly", "Yearly"
+        OTHER = "other", "Other"
+
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="charges")
+    charge_type = models.CharField(max_length=20, choices=ChargeType.choices, default=ChargeType.OTHER)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=3, default="GHS")
+    payer = models.CharField(max_length=20, choices=Payer.choices, default=Payer.NOT_SPECIFIED)
+    frequency = models.CharField(max_length=20, choices=Frequency.choices, default=Frequency.ONE_TIME)
+    is_required = models.BooleanField(null=True, blank=True, help_text="Unknown is different from optional.")
+    description = models.CharField(max_length=300, blank=True)
+    source_note = models.CharField(max_length=300, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_listing_charges")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "listing_charge"
+        ordering = ["charge_type", "created_at"]
+
+    def clean(self):
+        super().clean()
+        if self.amount is not None and self.amount < 0:
+            raise ValidationError("Charge amount cannot be negative.")
+
+    def __str__(self):
+        amount_label = "Not provided" if self.amount is None else f"{self.currency} {self.amount}"
+        return f"{self.listing.headline} · {self.charge_type} · {amount_label}"
