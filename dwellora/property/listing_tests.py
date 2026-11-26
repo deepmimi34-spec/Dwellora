@@ -160,20 +160,13 @@ class ListingArchitectureTests(TestCase):
         response = ListingAuthorizationCreate.as_view()(request)
         self.assertEqual(response.status_code, 400)
 
-    def test_owner_can_create_draft_but_cannot_publish_unverified_claim(self):
+    def test_owner_with_unverified_claim_cannot_create_listing_draft(self):
         self.claim()
         request = self.factory.post("/listings/create/", self.listing_payload(), format="json")
         force_authenticate(request, user=self.owner)
         response = ListingCreate.as_view()(request)
-        self.assertEqual(response.status_code, 201)
-        listing = Listing.objects.get(pk=response.data["id"])
-        self.assertEqual(listing.lister_id, self.owner.pk)
-        self.assertEqual(listing.status, Listing.Status.DRAFT)
-        ListingAvailabilityConfirmation.objects.create(listing=listing, confirmed_by=self.owner, is_available=True)
-        submit = self.factory.post(f"/listings/{listing.pk}/submit/")
-        force_authenticate(submit, user=self.owner)
-        submit_response = ListingSubmit.as_view()(submit, pk=listing.pk)
-        self.assertEqual(submit_response.status_code, 400)
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Listing.objects.filter(property=self.property, lister=self.owner).exists())
 
     def test_verified_owner_can_submit_and_staff_publish(self):
         claim = self.claim()
