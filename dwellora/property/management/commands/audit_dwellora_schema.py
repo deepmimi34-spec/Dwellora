@@ -26,6 +26,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.MIGRATE_HEADING("Dwellora schema inventory (READ ONLY)"))
         self.stdout.write(f"Database vendor: {connection.vendor}")
         self.stdout.write(f"Existing tables: {len(existing)}")
+        self.stdout.write("Migration history table: django_migrations")
         self.stdout.write(f"Migration history table exists: {migration_table}")
         self.stdout.write("")
         self.stdout.write(self.style.MIGRATE_HEADING("Model table inventory"))
