@@ -1,5 +1,7 @@
-from datetime import timedelta\nfrom django.core.exceptions import ValidationError
-from django.test import TestCase\nfrom django.utils import timezone
+from datetime import timedelta
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.models import Profile
@@ -62,7 +64,8 @@ class ListingArchitectureTests(TestCase):
         return license_record
 
     def authorize_agent(self, claim):
-        self.verify_agent_license()\n        request = self.factory.post("/authorizations/", {
+        self.verify_agent_license()
+        request = self.factory.post("/authorizations/", {
             "property": self.property.pk,
             "ownership": claim.pk,
             "authority_type": ListingAuthorization.AuthorityType.AGENT,
