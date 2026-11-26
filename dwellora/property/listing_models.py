@@ -1,4 +1,5 @@
 from builtins import property as builtin_property
+from datetime import timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -189,7 +190,16 @@ class Listing(models.Model):
         return PropertyOwnership.objects.filter(property=self.property, claimant=self.lister, status=PropertyOwnership.Status.VERIFIED).exists()
 
     def can_publish(self):
-        return self.has_current_authority() and self.property.is_property_complete() and bool(self.headline and self.price >= 0)
+        confirmed_recently = (
+            self.availability_confirmed_at is not None
+            and self.availability_confirmed_at >= timezone.now() - timedelta(days=30)
+        )
+        return (
+            self.has_current_authority()
+            and self.property.is_property_complete()
+            and bool(self.headline and self.price >= 0)
+            and confirmed_recently
+        
 
     def submit_for_review(self):
         if not self.has_current_authority():
