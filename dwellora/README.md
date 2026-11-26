@@ -110,3 +110,7 @@ python manage.py audit_dwellora_schema
 ```
 
 The command lists model tables versus database tables, detects duplicate model table names, and reports the migration-history table/records. It does not read property/user rows or modify the database. Review the output and take a verified backup before any migration command.
+
+## Marketplace UX
+
+The consumer/lister UI sequence and acceptance criteria are in `docs/MARKETPLACE_UX_PLAN.md`. Frontend API types for ownership, listings, structured charges and product feedback are prepared, but these routes/features are not connected to the live workspace until schema rollout.
