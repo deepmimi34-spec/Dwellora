@@ -307,6 +307,12 @@ class ListingArchitectureTests(TestCase):
         from django.utils import timezone
         from datetime import timedelta
 
+        PropertyOwnership.objects.create(
+            property=self.property, claimant=self.owner,
+            ownership_type="individual", evidence_type="Test evidence",
+            status=PropertyOwnership.Status.VERIFIED,
+            reviewed_by=self.staff, reviewed_at=timezone.now(),
+        )
         fresh = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
             headline="Fresh listing", price=100, status=Listing.Status.PUBLISHED,
