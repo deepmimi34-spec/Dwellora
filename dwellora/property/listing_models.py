@@ -156,6 +156,7 @@ class Listing(models.Model):
     service_charge_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     other_fees_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     other_fees_description = models.CharField(max_length=255, blank=True)
+    costs_disclosed = models.BooleanField(default=False, help_text="Lister confirms all known upfront and recurring charges have been disclosed.")
     availability_confirmed_at = models.DateTimeField(null=True, blank=True)
     available_from = models.DateField(null=True, blank=True)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -232,6 +233,8 @@ class Listing(models.Model):
 
     @builtin_property
     def estimated_upfront_total(self):
+        if not self.costs_disclosed:
+            return None
         if self.offer_type == self.OfferType.SHORT_STAY and self.billing_period == "night":
             return None
         if self.offer_type == self.OfferType.RENT and self.billing_period == "month" and not self.advance_months:
