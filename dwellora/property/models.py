@@ -347,4 +347,4 @@ class PropertyContentReport(models.Model):
 
 
 # Ownership and marketplace offer models are separated from the physical property.
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing
+from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
