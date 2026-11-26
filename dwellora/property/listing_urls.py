@@ -3,7 +3,7 @@ from .listing_views import (
     OwnershipClaimCreate, OwnershipClaimList, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationList, ListingAuthorizationReview,
     PublicListingList, PublicListingDetail, MyListingList, ListingCreate,
-    ListingUpdate, ListingDelete, ListingSubmit, ListingModeration, ListingAvailabilityConfirm,
+    ListingUpdate, ListingDelete, ListingSubmit, ListingModeration, ListingAvailabilityConfirm, ListingChargeListCreate, ListingChargeUpdate, ListingChargeDelete,
 )
 
 urlpatterns = [
@@ -20,6 +20,9 @@ urlpatterns = [
     path("listings/<int:pk>/update/", ListingUpdate.as_view(), name="listing-update"),
     path("listings/<int:pk>/delete/", ListingDelete.as_view(), name="listing-delete"),
     path("listings/<int:pk>/submit/", ListingSubmit.as_view(), name="listing-submit"),
+    path("listings/<int:listing_pk>/charges/", ListingChargeListCreate.as_view(), name="listing-charge-list-create"),
+    path("charges/<int:pk>/update/", ListingChargeUpdate.as_view(), name="listing-charge-update"),
+    path("charges/<int:pk>/delete/", ListingChargeDelete.as_view(), name="listing-charge-delete"),
     path("listings/<int:pk>/availability/", ListingAvailabilityConfirm.as_view(), name="listing-availability-confirm"),
     path("listings/<int:pk>/moderate/", ListingModeration.as_view(), name="listing-moderation"),
 ]
