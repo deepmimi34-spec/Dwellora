@@ -100,3 +100,13 @@ Draft listing charges are represented by ListingCharge records. They carry a cat
 ## Product feedback (implemented, gated)
 
 A separate feedback app accepts bug reports, feature ideas, usability/accessibility concerns and listing-information quality reports. Feedback is private by default; staff can triage status/severity and add internal notes plus a resolution summary. The feedback API URLs are in `feedback/urls.py` but are not mounted until migration review. No device/browser data is automatically collected; optional context is user-entered.
+
+## Read-only database inventory before migrations
+
+Before migration planning, connect the app to a copy of the target database and run:
+
+```bash
+python manage.py audit_dwellora_schema
+```
+
+The command lists model tables versus database tables, detects duplicate model table names, and reports the migration-history table/records. It does not read property/user rows or modify the database. Review the output and take a verified backup before any migration command.
