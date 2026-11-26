@@ -82,3 +82,22 @@ class ProductFeedbackTests(TestCase):
         feedback.status = ProductFeedback.Status.PLANNED
         with self.assertRaises(ValidationError):
             feedback.full_clean()
+
+    def test_member_cannot_read_internal_triage_notes(self):
+        feedback = ProductFeedback.objects.create(profile=self.member, **self.payload())
+        feedback.triage(self.staff, ProductFeedback.Status.TRIAGED, internal_note="Internal investigation.")
+        request = self.factory.get("/feedback/")
+        force_authenticate(request, user=self.member)
+        response = ProductFeedbackListCreate.as_view()(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("internal_note", response.data[0])
+        self.assertNotIn("severity", response.data[0])
+
+    def test_page_context_rejects_query_and_full_url(self):
+        payload = self.payload()
+        payload["page_context"] = "/search?token=secret"
+        request = self.factory.post("/feedback/", payload, format="json")
+        force_authenticate(request, user=self.member)
+        response = ProductFeedbackListCreate.as_view()(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(ProductFeedback.objects.count(), 0)
