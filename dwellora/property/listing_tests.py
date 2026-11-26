@@ -82,6 +82,7 @@ class ListingArchitectureTests(TestCase):
             "viewing_fee_amount": "0.00",
             "service_charge_amount": "100.00",
             "other_fees_amount": "0.00",
+            "costs_disclosed": True,
         }
 
     def test_claim_is_bound_to_authenticated_user(self):
