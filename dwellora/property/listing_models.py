@@ -2,7 +2,7 @@ from builtins import property as builtin_property
 from datetime import timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from .models import Property
@@ -50,6 +50,7 @@ class PractitionerLicense(models.Model):
     def is_current(self):
         return self.status == self.Status.VERIFIED and self.valid_until is not None and self.valid_until >= timezone.localdate()
 
+    @transaction.atomic
     def review(self, staff_user, status, source_checked_at=None, valid_until=None, note=""):
         if not getattr(staff_user, "is_staff", False):
             raise ValidationError("Only staff may verify practitioner licences.")
@@ -104,6 +105,7 @@ class PropertyOwnership(models.Model):
         elif self.reviewed_by_id and not self.reviewed_at:
             raise ValidationError("Review metadata must include a timestamp.")
 
+    @transaction.atomic
     def review(self, staff_user, status, note=""):
         if not getattr(staff_user, "is_staff", False):
             raise ValidationError("Only staff may review ownership claims.")
@@ -175,6 +177,7 @@ class ListingAuthorization(models.Model):
             if not self.reviewed_by_id or not self.reviewed_by.is_staff or not self.reviewed_at:
                 raise ValidationError("Approved authorization requires staff review metadata.")
 
+    @transaction.atomic
     def review(self, staff_user, status, note=""):
         if not getattr(staff_user, "is_staff", False):
             raise ValidationError("Only staff may review listing authorization.")
