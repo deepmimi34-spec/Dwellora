@@ -344,3 +344,7 @@ class PropertyContentReport(models.Model):
     def __str__(self):
         target = f'Review {self.review_id}' if self.review_id else f'Comment {self.comment_id}'
         return f'{target} reported by {self.reporter.username}'
+
+
+# Ownership and marketplace offer models are separated from the physical property.
+from .listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge

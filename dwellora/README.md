@@ -70,7 +70,7 @@ The branch contains tested models and views for viewing/tenancy interactions, ve
 Run the CI test modules from `dwellora/`:
 
 ```bash
-python manage.py test accounts.tests property.tests booking.tests services.tests property.feedback_tests property.interaction_tests property.report_tests --verbosity 2
+python manage.py test accounts.tests property.tests booking.tests services.tests property.feedback_tests property.interaction_tests property.report_tests property.listing_tests property.schema_audit_tests feedback.tests --verbosity 2
 ```
 
 CI also runs `python manage.py check`, Python compilation and the React/TypeScript production build.
@@ -80,3 +80,41 @@ CI also runs `python manage.py check`, Python compilation and the React/TypeScri
 - Never commit `.env`, database files, virtual environments, or generated build output.
 - Do not treat a profile identity check, REAC licence lookup, property visit or user review as proof of property title or structural safety.
 - Do not create migrations against a live database before inspection and backup.
+
+## Ownership and listing architecture (implemented, gated)
+
+The stabilization branch now separates physical Property records from ownership claims, authorised listers and marketplace offers. The listing workflow includes staff verification/moderation, owner-scoped draft operations, listing freshness confirmations, availability pause and cost estimate fields.
+
+Routes are defined in `property/listing_urls.py` but are not mounted in the active URLConf until the deployed database has been inspected and a data-preserving migration plan is reviewed. Read `docs/OWNERSHIP_AND_LISTING_ARCHITECTURE.md` for the full model and rollout plan.
+
+Run the focused architecture tests with:
+
+```bash
+python manage.py test property.listing_tests --verbosity 2
+```
+
+### Structured listing cost entries
+
+Draft listing charges are represented by ListingCharge records. They carry a category, nullable amount, currency, payer, frequency, mandatory/unknown state, description and source note. A cost with unknown payer/amount/mandatory status is not silently treated as zero in the upfront estimate. Charge management endpoints are part of the gated listing route definitions and are not live until migration review.
+
+## Product feedback (implemented, gated)
+
+A separate feedback app accepts bug reports, feature ideas, usability/accessibility concerns and listing-information quality reports. Feedback is private by default; staff can triage status/severity and add internal notes plus a resolution summary. The feedback API URLs are in `feedback/urls.py` but are not mounted until migration review. No device/browser data is automatically collected; optional context is user-entered.
+
+## Read-only database inventory before migrations
+
+Before migration planning, connect the app to a copy of the target database and run:
+
+```bash
+python manage.py audit_dwellora_schema
+```
+
+The command lists model tables versus database tables, detects duplicate model table names, and reports the migration-history table/records. It does not read property/user rows or modify the database. Review the output and take a verified backup before any migration command.
+
+## Marketplace UX
+
+The consumer/lister UI sequence and acceptance criteria are in `docs/MARKETPLACE_UX_PLAN.md`. Frontend API types for ownership, listings, structured charges and product feedback are prepared, but these routes/features are not connected to the live workspace until schema rollout.
+
+### REAC practitioner licence workflow
+
+A lister can submit a REAC licence number/type. Staff must manually check the official registry and record the source-check date and expiry before marking it verified. A current verified licence is required to approve agent/manager listing authority. The public listing summary exposes the licence type, masked number and check/expiry dates only. This is not an automated REAC API integration.
