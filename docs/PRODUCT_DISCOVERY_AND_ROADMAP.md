@@ -221,3 +221,24 @@ The latest completed CI run discovered **60 backend tests and all 60 passed**, i
 ## Consumer and lister UX blueprint
 
 The next UI implementation is documented in [MARKETPLACE_UX_PLAN.md](MARKETPLACE_UX_PLAN.md). It defines the search/map/list experience, listing detail and trust/cost hierarchy, lister onboarding, viewing journey, feedback flow, responsive behavior and accessibility acceptance criteria. The UI is sequenced after the database schema and routes are safely enabled.
+
+## Differentiation from current Ghana property portals
+
+Market research indicates existing portals already offer standard search, favourites/saved listings, advertising boosts and agent-submitted inventory. Dwellora should not compete by copying these alone. Our differentiating product system is the combination of:
+
+- **Authority graph:** property ownership claim, verified REAC licence and property-specific listing authorization are three separate checks. Never treat a licensed agent as automatically authorised for every property.
+- **Trust labels with scope/date:** show exactly what Dwellora or REAC checked, when it was checked and what it does not guarantee.
+- **Cost disclosure completeness:** base price, advance, fee payer, mandatory/optional/unknown, frequency and upfront estimate. Submission is blocked until the lister confirms disclosure completeness.
+- **Availability freshness:** dated confirmation, 30-day freshness rule, stale/expired filtering and paused state.
+- **Verified experience:** reviews tied to completed and staff-verified interaction.
+- **Continuous improvement:** property reports and private product feedback, moderated and triaged into roadmap work.
+
+### Research sources
+
+- REAC official registry: https://reac.gov.gh/public-registry-search/
+- REAC licence/verification: https://reac.gov.gh/licence/
+- meQasa FAQ and saved-property feature: https://meqasa.com/faq
+- NestGhana help-centre competitor claims on agent verification and owner authorisation: https://nestghana.com/help
+- FieRent terms explicitly describe no ownership/identity verification: https://fierent.com/terms
+
+These sources inform feature design, not independent claims about competitor performance.
