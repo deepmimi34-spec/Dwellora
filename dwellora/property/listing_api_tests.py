@@ -1,4 +1,5 @@
 from django.test import SimpleTestCase, TestCase
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse, resolve
 from rest_framework.test import APIRequestFactory
 
@@ -66,6 +67,7 @@ class ListingAPISerializerPrivacyTests(TestCase):
             moderation_note="Internal staff-only review context",
         )
         anonymous_request = self.factory.get("/api/property/listings/public/")
+        anonymous_request.user = AnonymousUser()
         public_data = ListingSerializer(
             listing, context={"request": anonymous_request}
         ).data
