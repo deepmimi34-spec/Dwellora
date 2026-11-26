@@ -114,3 +114,7 @@ The command lists model tables versus database tables, detects duplicate model t
 ## Marketplace UX
 
 The consumer/lister UI sequence and acceptance criteria are in `docs/MARKETPLACE_UX_PLAN.md`. Frontend API types for ownership, listings, structured charges and product feedback are prepared, but these routes/features are not connected to the live workspace until schema rollout.
+
+### REAC practitioner licence workflow
+
+A lister can submit a REAC licence number/type. Staff must manually check the official registry and record the source-check date and expiry before marking it verified. A current verified licence is required to approve agent/manager listing authority. The public listing summary exposes the licence type, masked number and check/expiry dates only. This is not an automated REAC API integration.
