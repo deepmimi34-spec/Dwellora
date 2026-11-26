@@ -112,6 +112,9 @@ class ListingAuthorization(models.Model):
         self.review_note = note
         self.full_clean()
         self.save(update_fields=["status", "reviewed_by", "reviewed_at", "review_note"])
+        if status == self.Status.REVOKED:
+            for listing in self.listings.filter(status=Listing.Status.PUBLISHED):
+                listing.moderate(staff_user, Listing.Status.PAUSED, "Listing authorization was revoked.")
         return self
 
     def is_current(self):
