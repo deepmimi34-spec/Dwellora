@@ -7,8 +7,8 @@ from rest_framework import generics, permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
-from .listing_serializers import PropertyOwnershipSerializer, ListingAuthorizationSerializer, ListingSerializer, ListingModerationSerializer, ListingAvailabilityConfirmationSerializer, ListingChargeSerializer
+from .listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
+from .listing_serializers import PractitionerLicenseSerializer, PractitionerLicenseReviewSerializer, PropertyOwnershipSerializer, ListingAuthorizationSerializer, ListingSerializer, ListingModerationSerializer, ListingAvailabilityConfirmationSerializer, ListingChargeSerializer
 
 
 class OwnershipClaimCreate(generics.CreateAPIView):
@@ -202,3 +202,35 @@ class ListingChargeDelete(generics.DestroyAPIView):
 
     def get_queryset(self):
         return ListingCharge.objects.filter(listing__lister=self.request.user, listing__status=Listing.Status.DRAFT)
+
+class PractitionerLicenseListCreate(generics.ListCreateAPIView):
+    serializer_class = PractitionerLicenseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = PractitionerLicense.objects.select_related("profile", "reviewed_by")
+        return qs if self.request.user.is_staff else qs.filter(profile=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(profile=self.request.user)
+
+
+class PractitionerLicenseReview(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def patch(self, request, pk):
+        license_record = get_object_or_404(PractitionerLicense, pk=pk)
+        serializer = PractitionerLicenseReviewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        values = serializer.validated_data
+        try:
+            license_record.review(
+                request.user,
+                values["status"],
+                values.get("source_checked_at"),
+                values.get("valid_until"),
+                values.get("review_note", ""),
+            )
+        except DjangoValidationError as exc:
+            return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(PractitionerLicenseSerializer(license_record).data)
