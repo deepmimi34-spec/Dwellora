@@ -40,7 +40,7 @@ erDiagram
 
 **Limit:** current implementation represents claims by individual profiles. Legal entities, co-ownership percentages, company registry checks and title-document review require a later extension and specialist workflow.
 
-## Listing authorization
+## Practitioner licensing (separate from property authority)\n\nThe branch now includes a PractitionerLicense record for a profile's REAC licence number/type, expiry, official source, check timestamp and staff reviewer. The status is verified only after a staff member manually checks the official registry. This is **not an automated REAC integration**. A current staff-verified agent/broker licence is required before a listing authorization can be approved. Public listing summaries expose only the licence type, masked number and checked/expiry dates. Licence expiry/suspension/rejection revokes downstream approved listing authorizations when no other current verified licence remains.\n\nOfficial registry: https://reac.gov.gh/public-registry-search/\n\n## Listing authorization
 
 - Owner listers rely on a verified ownership claim for the same property.
 - Agent/manager listers request a ListingAuthorization against a verified ownership claim.
