@@ -65,7 +65,13 @@ class ListingSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context.get("request")
-        authorization = attrs.get("authorization")
+        for field in ("price", "deposit_amount", "agent_fee_amount", "viewing_fee_amount", "service_charge_amount", "other_fees_amount"):
+            value = attrs.get(field, getattr(self.instance, field, 0) if self.instance else 0)
+            if value is not None and value < 0:
+                raise serializers.ValidationError({field: "Amounts cannot be negative."})
+        if request is None:
+            return attrs
+        authorization = attrs.get("authorization", getattr(self.instance, "authorization", None))
         property_obj = attrs.get("property", getattr(self.instance, "property", None))
         if authorization:
             if authorization.property_id != property_obj.pk:
@@ -77,9 +83,6 @@ class ListingSerializer(serializers.ModelSerializer):
         if self.instance and self.instance.status not in (Listing.Status.DRAFT, Listing.Status.REJECTED):
             raise serializers.ValidationError("Only draft or rejected listings can be edited.")
         return attrs
-
-    def create(self, validated_data):
-        return Listing.objects.create(lister=self.context["request"].user, **validated_data)
 
 
 class ListingModerationSerializer(serializers.ModelSerializer):
