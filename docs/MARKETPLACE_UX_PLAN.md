@@ -14,7 +14,7 @@ Trust-first Ghana property marketplace. The visual system should be clean, moder
 ## Ghana-specific trust signals (separate, never one generic badge)
 
 1. **Account identity** — Dwellora account identity check (scope and date shown).
-2. **REAC practitioner licence** — manual registry check until a supported registry API is available; show licence category/number masked, current status and checked date, with link to the official register. This is not ownership proof.
+2. **REAC practitioner licence** — manual registry check until a supported registry API is available; show licence category/number masked, current status and checked date, with link to the official register. This is not ownership proof. A current staff-verified REAC licence is required for agent/manager authorization approval.
 3. **Property ownership claim** — Dwellora staff review of submitted evidence; clearly say “Ownership claim reviewed by Dwellora”, not “legal title guaranteed”.
 4. **Listing authority** — owner or authorised lister for this specific property, checked and dated.
 5. **Availability** — lister-confirmed date; stale after 30 days and excluded from active search.
