@@ -92,3 +92,7 @@ Run the focused architecture tests with:
 ```bash
 python manage.py test property.listing_tests --verbosity 2
 ```
+
+### Structured listing cost entries
+
+Draft listing charges are represented by ListingCharge records. They carry a category, nullable amount, currency, payer, frequency, mandatory/unknown state, description and source note. A cost with unknown payer/amount/mandatory status is not silently treated as zero in the upfront estimate. Charge management endpoints are part of the gated listing route definitions and are not live until migration review.
