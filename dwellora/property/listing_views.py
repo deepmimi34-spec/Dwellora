@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -73,7 +74,7 @@ class PublicListingList(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Listing.objects.filter(status=Listing.Status.PUBLISHED, availability_confirmed_at__gte=timezone.now() - timezone.timedelta(days=30)).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.localdate())).select_related("property", "lister", "authorization")
+        return Listing.objects.filter(status=Listing.Status.PUBLISHED, availability_confirmed_at__gte=timezone.now() - timedelta(days=30)).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.localdate())).select_related("property", "lister", "authorization")
 
 
 class PublicListingDetail(generics.RetrieveAPIView):
