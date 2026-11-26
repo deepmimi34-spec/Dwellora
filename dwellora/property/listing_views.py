@@ -138,7 +138,7 @@ class ListingAvailabilityConfirm(APIView):
         listing = get_object_or_404(Listing, pk=pk)
         if listing.lister_id != request.user.pk and not request.user.is_staff:
             return Response({"detail": "Only the listing owner or staff can confirm availability."}, status=status.HTTP_403_FORBIDDEN)
-        if listing.status not in (Listing.Status.PUBLISHED, Listing.Status.PAUSED):
+        if listing.status not in (Listing.Status.DRAFT, Listing.Status.SUBMITTED, Listing.Status.PUBLISHED, Listing.Status.PAUSED):
             return Response({"detail": "Availability can only be confirmed for published or paused listings."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = ListingAvailabilityConfirmationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
