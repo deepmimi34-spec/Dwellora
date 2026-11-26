@@ -4,17 +4,17 @@ from .models import Property
 
 
 
-    def validate_source_url(self, value):
-        if not value.startswith("https://reac.gov.gh/"):
-            raise serializers.ValidationError("Registry checks must reference the official REAC website.")
-        return value
-
 class PractitionerLicenseSerializer(serializers.ModelSerializer):
     profile = serializers.PrimaryKeyRelatedField(read_only=True)
     status = serializers.CharField(read_only=True)
     reviewed_by = serializers.PrimaryKeyRelatedField(read_only=True)
     reviewed_at = serializers.DateTimeField(read_only=True)
     review_note = serializers.CharField(read_only=True)
+
+    def validate_source_url(self, value):
+        if not value.startswith("https://reac.gov.gh/"):
+            raise serializers.ValidationError("Registry checks must reference the official REAC website.")
+        return value
 
     class Meta:
         model = PractitionerLicense
