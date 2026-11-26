@@ -217,34 +217,7 @@ class Listing(models.Model):
 
     @property
     def estimated_upfront_total(self):
-        base = self.price * self.advance_months if self.billing_period == "month" and self.advance_months else self.price
+        if self.billing_period == "month" and not self.advance_months:
+            return None
+        base = self.price * self.advance_months if self.billing_period == "month" else self.price
         return base + self.deposit_amount + self.agent_fee_amount + self.viewing_fee_amount + self.service_charge_amount + self.other_fees_amount
-
-    def __str__(self):
-        return f"{self.headline} · {self.property.title}"
-
-class ListingAvailabilityConfirmation(models.Model):
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="availability_confirmations")
-    confirmed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="listing_availability_confirmations")
-    is_available = models.BooleanField()
-    note = models.CharField(max_length=500, blank=True)
-    confirmed_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "listing_availability_confirmation"
-        ordering = ["-confirmed_at"]
-
-    def clean(self):
-        super().clean()
-        if self.listing_id and self.confirmed_by_id != self.listing.lister_id and not self.confirmed_by.is_staff:
-            raise ValidationError("Only the lister or staff can confirm listing availability.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-        if self.is_available:
-            self.listing.availability_confirmed_at = self.confirmed_at
-            self.listing.save(update_fields=["availability_confirmed_at", "updated_at"])
-        elif self.listing.status == Listing.Status.PUBLISHED:
-            self.listing.status = Listing.Status.PAUSED
-            self.listing.save(update_fields=["status", "updated_at"])
