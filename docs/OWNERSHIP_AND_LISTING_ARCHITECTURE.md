@@ -78,7 +78,7 @@ Each Listing records offer type (rent/sale/short stay), amount, currency (GHS de
 
 Route definitions are in property/listing_urls.py; they are intentionally not mounted in the active URLConf until migration review:
 
-- ownership/claims/ — submit claim
+- licenses/ — submit/list REAC licence records\n- licenses/<id>/review/ — staff licence verification\n- ownership/claims/ — submit claim
 - ownership/my-claims/ — own claims (staff sees all)
 - ownership/claims/<id>/review/ — staff review
 - authorizations/ and authorizations/my/ — request/list authority
