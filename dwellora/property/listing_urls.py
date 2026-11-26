@@ -20,5 +20,6 @@ urlpatterns = [
     path("listings/<int:pk>/update/", ListingUpdate.as_view(), name="listing-update"),
     path("listings/<int:pk>/delete/", ListingDelete.as_view(), name="listing-delete"),
     path("listings/<int:pk>/submit/", ListingSubmit.as_view(), name="listing-submit"),
+    path("listings/<int:pk>/availability/", ListingAvailabilityConfirm.as_view(), name="listing-availability-confirm"),
     path("listings/<int:pk>/moderate/", ListingModeration.as_view(), name="listing-moderation"),
 ]
