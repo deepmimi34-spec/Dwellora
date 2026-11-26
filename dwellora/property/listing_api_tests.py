@@ -6,7 +6,7 @@ from rest_framework.test import APIRequestFactory
 
 from accounts.models import Profile
 from property.models import Property
-from property.listing_models import Listing, PropertyOwnership
+from property.listing_models import Listing, PropertyOwnership, PractitionerLicense, ListingAuthorization
 from property.listing_serializers import (
     PractitionerLicenseSerializer,
     PropertyOwnershipSerializer,
@@ -82,6 +82,54 @@ class ListingAPISerializerPrivacyTests(TestCase):
         self.assertEqual(
             owner_data["moderation_note"], "Internal staff-only review context"
         )
+
+
+    def test_review_notes_are_visible_only_to_staff(self):
+        agent = Profile.objects.create_user(
+            username="privacy_agent", password="Strong-password-1!"
+        )
+        staff = Profile.objects.create_user(
+            username="privacy_staff", password="Strong-password-1!", is_staff=True
+        )
+        ownership = PropertyOwnership.objects.create(
+            property=self.property,
+            claimant=self.owner,
+            review_note="Internal ownership verification details",
+        )
+        license_record = PractitionerLicense.objects.create(
+            profile=agent,
+            license_number="REAC-PRIVACY-001",
+            license_type=PractitionerLicense.LicenseType.AGENT,
+            review_note="Internal licence verification details",
+        )
+        authorization = ListingAuthorization.objects.create(
+            property=self.property,
+            ownership=ownership,
+            lister=agent,
+            authority_type=ListingAuthorization.AuthorityType.AGENT,
+            review_note="Internal authorization review details",
+        )
+
+        records = (
+            (PropertyOwnershipSerializer, ownership, self.owner, "Internal ownership verification details"),
+            (PractitionerLicenseSerializer, license_record, agent, "Internal licence verification details"),
+            (ListingAuthorizationSerializer, authorization, agent, "Internal authorization review details"),
+        )
+        for serializer_class, instance, subject, expected_note in records:
+            with self.subTest(serializer=serializer_class.__name__):
+                subject_request = self.factory.get("/")
+                subject_request.user = subject
+                subject_data = serializer_class(
+                    instance, context={"request": subject_request}
+                ).data
+                self.assertIsNone(subject_data["review_note"])
+
+                staff_request = self.factory.get("/")
+                staff_request.user = staff
+                staff_data = serializer_class(
+                    instance, context={"request": staff_request}
+                ).data
+                self.assertEqual(staff_data["review_note"], expected_note)
 
 
 
