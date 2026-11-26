@@ -172,8 +172,10 @@ class ListingArchitectureTests(TestCase):
     def test_license_suspension_rolls_back_if_listing_pause_fails(self):
         claim = self.claim()
         self.verify_claim(claim)
-        license_record = self.verify_agent_license()
         authorization = self.authorize_agent(claim)
+        license_record = PractitionerLicense.objects.get(
+            profile=self.agent, license_number="REAC/2026/A/TEST-001"
+        )
         listing = Listing.objects.create(
             property=self.property,
             lister=self.agent,
