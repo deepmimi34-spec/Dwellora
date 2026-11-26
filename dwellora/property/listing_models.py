@@ -242,3 +242,29 @@ class Listing(models.Model):
         return "fresh"
 
 
+
+class ListingAvailabilityConfirmation(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="availability_confirmations")
+    confirmed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="listing_availability_confirmations")
+    is_available = models.BooleanField()
+    note = models.CharField(max_length=500, blank=True)
+    confirmed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "listing_availability_confirmation"
+        ordering = ["-confirmed_at"]
+
+    def clean(self):
+        super().clean()
+        if self.listing_id and self.confirmed_by_id != self.listing.lister_id and not self.confirmed_by.is_staff:
+            raise ValidationError("Only the lister or staff can confirm listing availability.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        if self.is_available:
+            self.listing.availability_confirmed_at = self.confirmed_at
+            self.listing.save(update_fields=["availability_confirmed_at", "updated_at"])
+        elif self.listing.status == Listing.Status.PUBLISHED:
+            self.listing.status = Listing.Status.PAUSED
+            self.listing.save(update_fields=["status", "updated_at"])
