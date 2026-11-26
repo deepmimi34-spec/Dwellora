@@ -527,6 +527,57 @@ class ListingArchitectureTests(TestCase):
         response = PublicListingList.as_view()(request)
         self.assertEqual([item["id"] for item in response.data], [fresh.pk])
 
+    def test_public_feed_hides_listing_after_authorization_expiry(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        authorization = self.authorize_agent(claim)
+        authorization.valid_until = timezone.localdate() - timedelta(days=1)
+        authorization.save(update_fields=["valid_until"])
+        listing = Listing.objects.create(
+            lister=self.agent,
+            property=self.property,
+            authorization=authorization,
+            offer_type=Listing.OfferType.RENT,
+            headline="Expired authorization listing",
+            price="1200.00",
+            status=Listing.Status.PUBLISHED,
+            costs_disclosed=True,
+            availability_confirmed_at=timezone.now(),
+            moderated_by=self.staff,
+            moderated_at=timezone.now(),
+        )
+
+        response = PublicListingList.as_view()(self.factory.get("/listings/"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(listing.pk, [item["id"] for item in response.data])
+
+    def test_public_feed_hides_listing_after_practitioner_license_expiry(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        authorization = self.authorize_agent(claim)
+        license_record = PractitionerLicense.objects.get(profile=self.agent)
+        license_record.valid_until = timezone.localdate() - timedelta(days=1)
+        license_record.save(update_fields=["valid_until"])
+        listing = Listing.objects.create(
+            lister=self.agent,
+            property=self.property,
+            authorization=authorization,
+            offer_type=Listing.OfferType.RENT,
+            headline="Expired practitioner licence listing",
+            price="1200.00",
+            status=Listing.Status.PUBLISHED,
+            costs_disclosed=True,
+            availability_confirmed_at=timezone.now(),
+            moderated_by=self.staff,
+            moderated_at=timezone.now(),
+        )
+
+        response = PublicListingList.as_view()(self.factory.get("/listings/"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(listing.pk, [item["id"] for item in response.data])
+
     def test_structured_required_tenant_charge_is_in_estimate(self):
         listing = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
