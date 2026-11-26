@@ -490,7 +490,7 @@ class ListingArchitectureTests(TestCase):
         )
         serialized = ListingSerializer(listing).data
         self.assertEqual(serialized["lister_license_summary"]["status"], "verified")
-        self.assertEqual(serialized["lister_license_summary"]["number_masked"], "••••TEST-001")
+        self.assertEqual(serialized["lister_license_summary"]["number_masked"], "••••T-001")
         self.assertNotIn(license_record.license_number, str(serialized))
 
     def test_non_official_license_registry_url_rejected(self):
