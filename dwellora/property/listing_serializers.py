@@ -144,13 +144,27 @@ class ListingSerializer(serializers.ModelSerializer):
             return attrs
         authorization = attrs.get("authorization", getattr(self.instance, "authorization", None))
         property_obj = attrs.get("property", getattr(self.instance, "property", None))
+        if property_obj is None:
+            raise serializers.ValidationError({"property": "A property is required."})
+
         if authorization:
             if authorization.property_id != property_obj.pk:
                 raise serializers.ValidationError({"authorization": "Authorization must match the listing property."})
             if authorization.lister_id != request.user.pk:
                 raise serializers.ValidationError({"authorization": "You are not the lister named in this authorization."})
-            if authorization.status not in (ListingAuthorization.Status.REQUESTED, ListingAuthorization.Status.APPROVED):
-                raise serializers.ValidationError({"authorization": "This authorization is no longer usable."})
+            if authorization.status != ListingAuthorization.Status.APPROVED:
+                raise serializers.ValidationError({"authorization": "Only approved listing authorizations can be used."})
+            if not authorization.is_current():
+                raise serializers.ValidationError({"authorization": "This authorization is no longer current."})
+        elif not PropertyOwnership.objects.filter(
+            property=property_obj,
+            claimant=request.user,
+            status=PropertyOwnership.Status.VERIFIED,
+        ).exists():
+            raise serializers.ValidationError({
+                "property": "Verified ownership or an approved authorization is required to create a listing."
+            })
+
         if self.instance and self.instance.status not in (Listing.Status.DRAFT, Listing.Status.REJECTED):
             raise serializers.ValidationError("Only draft or rejected listings can be edited.")
         return attrs
