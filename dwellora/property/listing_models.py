@@ -245,7 +245,7 @@ class Listing(models.Model):
         base = self.price * self.advance_months if self.offer_type == self.OfferType.RENT and self.billing_period == "month" else self.price
         total = base + self.deposit_amount + self.agent_fee_amount + self.viewing_fee_amount + self.service_charge_amount + self.other_fees_amount
         payer = "tenant" if self.offer_type == self.OfferType.RENT else "buyer"
-        for charge in self.charges.all():
+        if self.pk:\n            charges = self.charges.all()\n        else:\n            charges = []\n        for charge in charges:
             if charge.frequency != ListingCharge.Frequency.ONE_TIME:
                 continue
             if charge.is_required is False:
