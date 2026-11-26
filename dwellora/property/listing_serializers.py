@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
+from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
 from .models import Property
 
 
@@ -49,7 +49,22 @@ class ListingAuthorizationSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class ListingSerializer(serializers.ModelSerializer):
+
+class ListingChargeSerializer(serializers.ModelSerializer):
+    listing = serializers.PrimaryKeyRelatedField(read_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = ListingCharge
+        fields = ("id", "listing", "charge_type", "amount", "currency", "payer", "frequency", "is_required", "description", "source_note", "created_by", "created_at", "updated_at")
+        read_only_fields = ("id", "listing", "created_by", "created_at", "updated_at")
+
+    def validate_amount(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Charge amount cannot be negative.")
+        return value
+
+class ListingSerializer(serializers.ModelSerializer):\n    charges = ListingChargeSerializer(many=True, read_only=True)
     lister = serializers.PrimaryKeyRelatedField(read_only=True)
     status = serializers.CharField(read_only=True)
     property_title = serializers.CharField(source="property.title", read_only=True)
