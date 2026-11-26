@@ -302,3 +302,26 @@ class ListingArchitectureTests(TestCase):
         force_authenticate(request, user=self.staff)
         response = ListingModeration.as_view()(request, pk=listing.pk)
         self.assertEqual(response.status_code, 400)
+
+    def test_public_feed_excludes_stale_and_expired_offers(self):
+        from django.utils import timezone
+        from datetime import timedelta
+
+        fresh = Listing.objects.create(
+            lister=self.owner, property=self.property, offer_type="rent",
+            headline="Fresh listing", price=100, status=Listing.Status.PUBLISHED,
+            availability_confirmed_at=timezone.now(),
+        )
+        stale = Listing.objects.create(
+            lister=self.owner, property=self.property, offer_type="rent",
+            headline="Stale listing", price=100, status=Listing.Status.PUBLISHED,
+            availability_confirmed_at=timezone.now() - timedelta(days=31),
+        )
+        expired = Listing.objects.create(
+            lister=self.owner, property=self.property, offer_type="rent",
+            headline="Expired listing", price=100, status=Listing.Status.PUBLISHED,
+            availability_confirmed_at=timezone.now(), expires_at=timezone.localdate() - timedelta(days=1),
+        )
+        request = self.factory.get("/listings/")
+        response = PublicListingList.as_view()(request)
+        self.assertEqual([item["id"] for item in response.data], [fresh.pk])
