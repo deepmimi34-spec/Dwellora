@@ -243,3 +243,29 @@ class ListingArchitectureTests(TestCase):
         listing = Listing(lister=self.owner, property=self.property, offer_type="rent", headline="Invalid publish", price=100, status=Listing.Status.PUBLISHED)
         with self.assertRaises(ValidationError):
             listing.full_clean()
+
+    def test_only_lister_can_confirm_availability(self):
+        listing = Listing.objects.create(lister=self.owner, property=self.property, offer_type="rent", headline="Published", price=100, status=Listing.Status.PUBLISHED)
+        request = self.factory.post(f"/listings/{listing.pk}/availability/", {"is_available": True, "note": "Confirmed"}, format="json")
+        force_authenticate(request, user=self.agent)
+        response = ListingAvailabilityConfirm.as_view()(request, pk=listing.pk)
+        self.assertEqual(response.status_code, 403)
+
+    def test_lister_confirmation_updates_timestamp_and_history(self):
+        listing = Listing.objects.create(lister=self.owner, property=self.property, offer_type="rent", headline="Published", price=100, status=Listing.Status.PUBLISHED)
+        request = self.factory.post(f"/listings/{listing.pk}/availability/", {"is_available": True, "note": "Available today"}, format="json")
+        force_authenticate(request, user=self.owner)
+        response = ListingAvailabilityConfirm.as_view()(request, pk=listing.pk)
+        self.assertEqual(response.status_code, 201)
+        listing.refresh_from_db()
+        self.assertIsNotNone(listing.availability_confirmed_at)
+        self.assertEqual(listing.availability_confirmations.count(), 1)
+
+    def test_lister_can_pause_listing_by_confirming_unavailable(self):
+        listing = Listing.objects.create(lister=self.owner, property=self.property, offer_type="rent", headline="Published", price=100, status=Listing.Status.PUBLISHED)
+        request = self.factory.post(f"/listings/{listing.pk}/availability/", {"is_available": False, "note": "Already rented"}, format="json")
+        force_authenticate(request, user=self.owner)
+        response = ListingAvailabilityConfirm.as_view()(request, pk=listing.pk)
+        self.assertEqual(response.status_code, 201)
+        listing.refresh_from_db()
+        self.assertEqual(listing.status, Listing.Status.PAUSED)
