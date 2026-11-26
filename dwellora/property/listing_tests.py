@@ -294,6 +294,37 @@ class ListingArchitectureTests(TestCase):
         listing.refresh_from_db()
         self.assertEqual(listing.status, Listing.Status.PAUSED)
 
+    def test_negative_confirmation_invalidates_previous_positive_confirmation(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        listing = Listing.objects.create(
+            lister=self.owner,
+            property=self.property,
+            offer_type="rent",
+            headline="Availability regression",
+            price=100,
+            costs_disclosed=True,
+        )
+        ListingAvailabilityConfirmation.objects.create(
+            listing=listing, confirmed_by=self.owner, is_available=True,
+        )
+        listing.submit_for_review()
+        listing.moderate(self.staff, Listing.Status.PUBLISHED, "Initial publication.")
+
+        previous_confirmation_at = listing.availability_confirmed_at
+        negative_confirmation = ListingAvailabilityConfirmation.objects.create(
+            listing=listing, confirmed_by=self.owner, is_available=False,
+            note="The property has been rented.",
+        )
+        listing.refresh_from_db()
+
+        self.assertEqual(listing.status, Listing.Status.PAUSED)
+        self.assertEqual(listing.availability_confirmed_at, negative_confirmation.confirmed_at)
+        self.assertGreaterEqual(listing.availability_confirmed_at, previous_confirmation_at)
+        self.assertFalse(listing.can_publish())
+        with self.assertRaises(ValidationError):
+            listing.moderate(self.staff, Listing.Status.PUBLISHED, "Attempted republication.")
+
     def test_agent_listing_published_and_paused_when_ownership_revoked(self):
         claim = self.claim()
         self.verify_claim(claim)
@@ -348,7 +379,7 @@ class ListingArchitectureTests(TestCase):
         expired = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
             headline="Expired listing", price=100, status=Listing.Status.PUBLISHED, costs_disclosed=True,
-            availability_confirmed_at=timezone.now(), expires_at=timezone.localdate() - timedelta(days=1),
+            availability_confirmed_at=timezone.now(), expires_at=timezone.now() - timedelta(days=1),
         )
         request = self.factory.get("/listings/")
         response = PublicListingList.as_view()(request)
