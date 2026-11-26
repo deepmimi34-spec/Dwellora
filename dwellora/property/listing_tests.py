@@ -1,5 +1,5 @@
-from django.core.exceptions import ValidationError
-from django.test import TestCase
+from datetime import timedelta\nfrom django.core.exceptions import ValidationError
+from django.test import TestCase\nfrom django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.models import Profile
