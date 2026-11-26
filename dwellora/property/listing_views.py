@@ -73,6 +73,7 @@ def public_listing_queryset():
     today = timezone.localdate()
     return Listing.objects.filter(
         status=Listing.Status.PUBLISHED,
+        costs_disclosed=True,
         availability_confirmed_at__gte=timezone.now() - timedelta(days=30),
     ).filter(
         Q(expires_at__isnull=True) | Q(expires_at__gt=today)
