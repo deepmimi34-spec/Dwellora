@@ -85,6 +85,9 @@ class ListingSerializer(serializers.ModelSerializer):
         return attrs
 
 
+    def create(self, validated_data):
+        return Listing.objects.create(lister=self.context["request"].user, **validated_data)
+
 class ListingModerationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
