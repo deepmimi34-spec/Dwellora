@@ -281,6 +281,9 @@ class Listing(models.Model):
         return PropertyOwnership.objects.filter(property=self.property, claimant=self.lister, status=PropertyOwnership.Status.VERIFIED).exists()
 
     def can_publish(self):
+        # Unsaved listings have no reverse confirmation relation to query.
+        if not self.pk:
+            return False
         latest_confirmation = self.availability_confirmations.order_by("-confirmed_at", "-pk").first()
         confirmed_recently = (
             latest_confirmation is not None
