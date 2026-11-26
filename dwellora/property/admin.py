@@ -9,7 +9,7 @@ class PropertyOwnershipAdmin(admin.ModelAdmin):
     list_display = ("property", "claimant", "ownership_type", "status", "submitted_at", "reviewed_by", "reviewed_at")
     list_filter = ("status", "ownership_type", "submitted_at")
     search_fields = ("property__title", "claimant__username", "claimant__email", "evidence_type")
-    readonly_fields = ("submitted_at", "reviewed_by", "reviewed_at")
+    readonly_fields = ("status", "submitted_at", "reviewed_by", "reviewed_at", "review_note")
     actions = ("verify_claims", "reject_claims", "revoke_claims")
 
     @admin.action(description="Verify selected ownership claims")
@@ -51,7 +51,7 @@ class ListingAuthorizationAdmin(admin.ModelAdmin):
     list_display = ("property", "ownership", "lister", "authority_type", "status", "valid_from", "valid_until", "reviewed_by")
     list_filter = ("status", "authority_type", "valid_until")
     search_fields = ("property__title", "lister__username", "ownership__claimant__username")
-    readonly_fields = ("reviewed_by", "reviewed_at")
+    readonly_fields = ("status", "reviewed_by", "reviewed_at", "review_note")
     actions = ("approve_authorizations", "reject_authorizations", "revoke_authorizations")
 
     @admin.action(description="Approve selected listing authorizations")
@@ -93,7 +93,7 @@ class ListingAdmin(admin.ModelAdmin):
     list_display = ("headline", "property", "lister", "offer_type", "price", "currency", "status", "availability_confirmed_at", "created_at")
     list_filter = ("status", "offer_type", "currency", "billing_period", "created_at")
     search_fields = ("headline", "property__title", "lister__username", "lister__email")
-    readonly_fields = ("created_at", "updated_at", "published_at", "moderated_by", "moderated_at", "availability_confirmed_at")
+    readonly_fields = ("status", "created_at", "updated_at", "published_at", "moderated_by", "moderated_at", "availability_confirmed_at", "moderation_note")
     actions = ("publish_submitted", "reject_submitted", "remove_listings", "pause_listings")
 
     @admin.action(description="Publish selected submitted listings")
