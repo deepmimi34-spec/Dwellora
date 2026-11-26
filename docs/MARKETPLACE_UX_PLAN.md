@@ -11,6 +11,18 @@ Trust-first Ghana property marketplace. The visual system should be clean, moder
 - Listing cards must show: price/billing period, unit, location, property type, cost-disclosure status, availability-confirmed date, verification scope and save action.
 - A stale or incomplete listing is never disguised as current or fully costed.
 
+## Ghana-specific trust signals (separate, never one generic badge)
+
+1. **Account identity** — Dwellora account identity check (scope and date shown).
+2. **REAC practitioner licence** — manual registry check until a supported registry API is available; show licence category/number masked, current status and checked date, with link to the official register. This is not ownership proof.
+3. **Property ownership claim** — Dwellora staff review of submitted evidence; clearly say “Ownership claim reviewed by Dwellora”, not “legal title guaranteed”.
+4. **Listing authority** — owner or authorised lister for this specific property, checked and dated.
+5. **Availability** — lister-confirmed date; stale after 30 days and excluded from active search.
+6. **Verified experience** — review only after completed, staff-verified interaction.
+7. **Content moderation** — report action and visible moderation outcome where appropriate.
+
+These signals remain independent. A REAC-licensed agent may still have no authority for a particular property; a verified ownership claim is not a structural inspection or title guarantee.
+
 ## Listing detail
 Information hierarchy:
 1. Gallery with accessible keyboard/swipe controls and photo count.
@@ -60,3 +72,11 @@ Information hierarchy:
 5. Review/comments/report UI.
 6. Contextual product feedback and triage dashboard.
 7. Pilot, usability testing, measure search-to-viewing conversion, stale-listing rate, cost disclosure completion, report resolution time and repeat usage.
+
+## External research references
+
+- REAC official public registry: https://reac.gov.gh/public-registry-search/ (registry for licensed practitioners and disciplinary actions)
+- REAC licensing/verification information: https://reac.gov.gh/licence/
+- meQasa FAQs: https://meqasa.com/faq (favourites/saved properties and advertiser features)
+- NestGhana Help: https://nestghana.com/help (competitor-described agent verification, owner confirmation, reporting and fee policies)
+- FieRent Terms: https://fierent.com/terms (states its marketplace does not confirm ownership or agent identity)
