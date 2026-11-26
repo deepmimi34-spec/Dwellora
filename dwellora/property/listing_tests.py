@@ -228,6 +228,35 @@ class ListingArchitectureTests(TestCase):
         response = ListingAuthorizationCreate.as_view()(request)
         self.assertEqual(response.status_code, 400)
 
+    def test_owner_authorization_type_is_rejected_by_api(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        request = self.factory.post("/authorizations/", {
+            "property": self.property.pk,
+            "ownership": claim.pk,
+            "authority_type": "owner",
+            "evidence_type": "Signed mandate",
+        }, format="json")
+        force_authenticate(request, user=self.agent)
+        response = ListingAuthorizationCreate.as_view()(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(ListingAuthorization.objects.filter(
+            property=self.property, lister=self.agent
+        ).exists())
+
+    def test_owner_authorization_type_is_rejected_by_model(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        authorization = ListingAuthorization(
+            property=self.property,
+            ownership=claim,
+            lister=self.agent,
+            authority_type="owner",
+            evidence_type="Signed mandate",
+        )
+        with self.assertRaises(ValidationError):
+            authorization.full_clean()
+
     def test_authorization_must_match_claimed_property(self):
         claim = self.claim()
         other = Property.objects.create(title="Other property", property_type="House", region="Greater Accra")
