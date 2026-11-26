@@ -510,7 +510,7 @@ class ListingArchitectureTests(TestCase):
         )
         license_record.review(
             self.staff,
-            PractitionerLicense.Status.VERIFIED,
+            PractitionerLicense.Status.EXPIRED,
             source_checked_at=timezone.now(),
             valid_until=timezone.localdate() - timedelta(days=1),
         )
