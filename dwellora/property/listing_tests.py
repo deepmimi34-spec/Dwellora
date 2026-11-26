@@ -140,6 +140,67 @@ class ListingArchitectureTests(TestCase):
         claim.refresh_from_db()
         self.assertEqual(claim.status, PropertyOwnership.Status.VERIFIED)
 
+    def test_authorization_revocation_rolls_back_if_listing_pause_fails(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        authorization = self.authorize_agent(claim)
+        listing = Listing.objects.create(
+            property=self.property,
+            lister=self.agent,
+            authorization=authorization,
+            offer_type=Listing.OfferType.RENT,
+            headline="Published agent listing",
+            price="1000.00",
+            status=Listing.Status.PUBLISHED,
+            moderated_by=self.staff,
+            moderated_at=timezone.now(),
+        )
+
+        with patch.object(Listing, "moderate", side_effect=RuntimeError("simulated pause failure")):
+            with self.assertRaises(RuntimeError):
+                authorization.review(
+                    self.staff,
+                    ListingAuthorization.Status.REVOKED,
+                    "Revocation rollback test",
+                )
+
+        authorization.refresh_from_db()
+        listing.refresh_from_db()
+        self.assertEqual(authorization.status, ListingAuthorization.Status.APPROVED)
+        self.assertEqual(listing.status, Listing.Status.PUBLISHED)
+
+    def test_license_suspension_rolls_back_if_listing_pause_fails(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        license_record = self.verify_agent_license()
+        authorization = self.authorize_agent(claim)
+        listing = Listing.objects.create(
+            property=self.property,
+            lister=self.agent,
+            authorization=authorization,
+            offer_type=Listing.OfferType.RENT,
+            headline="Published licensed-agent listing",
+            price="1000.00",
+            status=Listing.Status.PUBLISHED,
+            moderated_by=self.staff,
+            moderated_at=timezone.now(),
+        )
+
+        with patch.object(Listing, "moderate", side_effect=RuntimeError("simulated pause failure")):
+            with self.assertRaises(RuntimeError):
+                license_record.review(
+                    self.staff,
+                    PractitionerLicense.Status.SUSPENDED,
+                    note="Suspension rollback test",
+                )
+
+        license_record.refresh_from_db()
+        authorization.refresh_from_db()
+        listing.refresh_from_db()
+        self.assertEqual(license_record.status, PractitionerLicense.Status.VERIFIED)
+        self.assertEqual(authorization.status, ListingAuthorization.Status.APPROVED)
+        self.assertEqual(listing.status, Listing.Status.PUBLISHED)
+
     def test_owner_claim_can_be_verified_by_staff(self):
         claim = self.claim()
         self.verify_claim(claim)
