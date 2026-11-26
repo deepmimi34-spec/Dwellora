@@ -96,3 +96,7 @@ python manage.py test property.listing_tests --verbosity 2
 ### Structured listing cost entries
 
 Draft listing charges are represented by ListingCharge records. They carry a category, nullable amount, currency, payer, frequency, mandatory/unknown state, description and source note. A cost with unknown payer/amount/mandatory status is not silently treated as zero in the upfront estimate. Charge management endpoints are part of the gated listing route definitions and are not live until migration review.
+
+## Product feedback (implemented, gated)
+
+A separate feedback app accepts bug reports, feature ideas, usability/accessibility concerns and listing-information quality reports. Feedback is private by default; staff can triage status/severity and add internal notes plus a resolution summary. The feedback API URLs are in `feedback/urls.py` but are not mounted until migration review. No device/browser data is automatically collected; optional context is user-entered.
