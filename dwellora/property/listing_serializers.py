@@ -1,7 +1,27 @@
 from rest_framework import serializers
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
+from .listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
 from .models import Property
 
+
+
+class PractitionerLicenseSerializer(serializers.ModelSerializer):
+    profile = serializers.PrimaryKeyRelatedField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    reviewed_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    reviewed_at = serializers.DateTimeField(read_only=True)
+    review_note = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = PractitionerLicense
+        fields = ("id", "profile", "license_number", "license_type", "status", "valid_until", "source_checked_at", "source_url", "evidence_reference", "reviewed_by", "reviewed_at", "review_note", "created_at")
+        read_only_fields = ("id", "profile", "status", "reviewed_by", "reviewed_at", "review_note", "created_at")
+
+
+class PractitionerLicenseReviewSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=PractitionerLicense.Status.choices)
+    source_checked_at = serializers.DateTimeField(required=False)
+    valid_until = serializers.DateField(required=False)
+    review_note = serializers.CharField(required=False, max_length=1000, allow_blank=True)
 
 class PropertyOwnershipSerializer(serializers.ModelSerializer):
     claimant = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -65,7 +85,7 @@ class ListingChargeSerializer(serializers.ModelSerializer):
         return value
 
 class ListingSerializer(serializers.ModelSerializer):
-    charges = ListingChargeSerializer(many=True, read_only=True)
+    charges = ListingChargeSerializer(many=True, read_only=True)\n    lister_license_summary = serializers.SerializerMethodField()
     lister = serializers.PrimaryKeyRelatedField(read_only=True)
     status = serializers.CharField(read_only=True)
     property_title = serializers.CharField(source="property.title", read_only=True)
@@ -75,9 +95,28 @@ class ListingSerializer(serializers.ModelSerializer):
     moderated_at = serializers.DateTimeField(read_only=True)
     moderation_note = serializers.CharField(read_only=True)
 
+
+    def get_lister_license_summary(self, obj):
+        from django.utils import timezone
+        license_record = obj.lister.practitioner_licenses.filter(
+            status=PractitionerLicense.Status.VERIFIED,
+            valid_until__gte=timezone.localdate(),
+        ).order_by("-valid_until").first()
+        if not license_record:
+            return {"status": "not_verified"}
+        number = license_record.license_number
+        return {
+            "status": "verified",
+            "license_type": license_record.license_type,
+            "number_masked": f"••••{number[-4:]}",
+            "checked_at": license_record.source_checked_at,
+            "valid_until": license_record.valid_until,
+            "source_url": license_record.source_url,
+        }
+
     class Meta:
         model = Listing
-        fields = ("id", "charges", "property", "property_title", "lister", "authorization", "offer_type", "headline", "description", "unit_label", "price", "currency", "billing_period", "advance_months", "deposit_amount", "agent_fee_amount", "viewing_fee_amount", "service_charge_amount", "other_fees_amount", "other_fees_description", "costs_disclosed", "estimated_upfront_total", "availability_freshness", "availability_confirmed_at", "available_from", "published_at", "expires_at", "status", "moderated_by", "moderated_at", "moderation_note", "created_at", "updated_at")
+        fields = ("id", "charges", "lister_license_summary", "property", "property_title", "lister", "authorization", "offer_type", "headline", "description", "unit_label", "price", "currency", "billing_period", "advance_months", "deposit_amount", "agent_fee_amount", "viewing_fee_amount", "service_charge_amount", "other_fees_amount", "other_fees_description", "costs_disclosed", "estimated_upfront_total", "availability_freshness", "availability_confirmed_at", "available_from", "published_at", "expires_at", "status", "moderated_by", "moderated_at", "moderation_note", "created_at", "updated_at")
         read_only_fields = ("id", "property_title", "lister", "estimated_upfront_total", "availability_confirmed_at", "published_at", "status", "moderated_by", "moderated_at", "moderation_note", "created_at", "updated_at")
 
     def validate(self, attrs):
