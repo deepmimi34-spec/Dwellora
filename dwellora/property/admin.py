@@ -147,3 +147,10 @@ class ListingAvailabilityConfirmationAdmin(admin.ModelAdmin):
     list_filter = ("is_available", "confirmed_at")
     search_fields = ("listing__headline", "confirmed_by__username")
     readonly_fields = ("listing", "confirmed_by", "is_available", "note", "confirmed_at")
+
+@admin.register(ListingCharge)
+class ListingChargeAdmin(admin.ModelAdmin):
+    list_display = ("listing", "charge_type", "amount", "currency", "payer", "frequency", "is_required")
+    list_filter = ("charge_type", "payer", "frequency", "is_required", "currency")
+    search_fields = ("listing__headline", "listing__property__title", "description")
+    readonly_fields = ("created_by", "created_at", "updated_at")
