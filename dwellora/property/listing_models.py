@@ -8,6 +8,70 @@ from django.utils import timezone
 from .models import Property
 
 
+class PractitionerLicense(models.Model):
+    class LicenseType(models.TextChoices):
+        AGENT = "agent", "Real estate agent"
+        BROKER = "broker", "Real estate broker"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending check"
+        VERIFIED = "verified", "Verified"
+        REJECTED = "rejected", "Rejected"
+        SUSPENDED = "suspended", "Suspended"
+        EXPIRED = "expired", "Expired"
+
+    profile = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="practitioner_licenses")
+    license_number = models.CharField(max_length=64, unique=True)
+    license_type = models.CharField(max_length=12, choices=LicenseType.choices)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+    valid_until = models.DateField(null=True, blank=True)
+    source_checked_at = models.DateTimeField(null=True, blank=True)
+    source_url = models.URLField(max_length=300, default="https://reac.gov.gh/public-registry-search/")
+    evidence_reference = models.CharField(max_length=255, blank=True, help_text="Private evidence-storage reference, not a public document URL.")
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="reviewed_practitioner_licenses", null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_note = models.TextField(max_length=1000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "practitioner_license"
+        ordering = ["-reviewed_at", "-created_at"]
+
+    def clean(self):
+        super().clean()
+        if self.status == self.Status.VERIFIED:
+            if not self.reviewed_by_id or not self.reviewed_by.is_staff or not self.reviewed_at:
+                raise ValidationError("Verified licence records require staff review metadata.")
+            if not self.source_checked_at or not self.valid_until:
+                raise ValidationError("Verified licence requires a registry-check date and expiry date.")
+            if self.valid_until < timezone.localdate():
+                raise ValidationError("An expired licence cannot be marked verified.")
+
+    def is_current(self):
+        return self.status == self.Status.VERIFIED and self.valid_until is not None and self.valid_until >= timezone.localdate()
+
+    def review(self, staff_user, status, source_checked_at=None, valid_until=None, note=""):
+        if not getattr(staff_user, "is_staff", False):
+            raise ValidationError("Only staff may verify practitioner licences.")
+        if status not in (self.Status.VERIFIED, self.Status.REJECTED, self.Status.SUSPENDED, self.Status.EXPIRED):
+            raise ValidationError("Unsupported licence review status.")
+        self.status = status
+        self.reviewed_by = staff_user
+        self.reviewed_at = timezone.now()
+        if source_checked_at is not None:
+            self.source_checked_at = source_checked_at
+        if valid_until is not None:
+            self.valid_until = valid_until
+        self.review_note = note
+        self.full_clean()
+        self.save(update_fields=["status", "reviewed_by", "reviewed_at", "source_checked_at", "valid_until", "review_note"])
+        if status != self.Status.VERIFIED:
+            for authorization in ListingAuthorization.objects.filter(lister=self.profile, status=ListingAuthorization.Status.APPROVED):
+                if not PractitionerLicense.objects.filter(profile=self.profile, status=self.Status.VERIFIED, valid_until__gte=timezone.localdate()).exclude(pk=self.pk).exists():
+                    authorization.review(staff_user, ListingAuthorization.Status.REVOKED, "Practitioner licence is no longer current.")
+        return self
+
+
 class PropertyOwnership(models.Model):
     class Status(models.TextChoices):
         CLAIMED = "claimed", "Claim submitted"
