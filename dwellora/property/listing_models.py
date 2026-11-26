@@ -111,19 +111,21 @@ class PropertyOwnership(models.Model):
             raise ValidationError("Only staff may review ownership claims.")
         if status not in (self.Status.VERIFIED, self.Status.REJECTED, self.Status.REVOKED):
             raise ValidationError("Unsupported review status.")
+        was_verified = self.status == self.Status.VERIFIED
         self.status = status
         self.reviewed_by = staff_user
         self.reviewed_at = timezone.now()
         self.review_note = note
         self.full_clean()
         self.save(update_fields=["status", "reviewed_by", "reviewed_at", "review_note"])
-        if status == self.Status.REVOKED:
+        if was_verified and status != self.Status.VERIFIED:
+            reason = "Underlying ownership is no longer verified."
             for direct_listing in self.property.listings.filter(lister=self.claimant, status=Listing.Status.PUBLISHED):
-                direct_listing.moderate(staff_user, Listing.Status.PAUSED, "Underlying ownership was revoked.")
+                direct_listing.moderate(staff_user, Listing.Status.PAUSED, reason)
             for authorization in self.authorizations.filter(status=ListingAuthorization.Status.APPROVED):
-                authorization.review(staff_user, ListingAuthorization.Status.REVOKED, "Underlying ownership was revoked.")
+                authorization.review(staff_user, ListingAuthorization.Status.REVOKED, reason)
                 for listing in authorization.listings.filter(status=Listing.Status.PUBLISHED):
-                    listing.moderate(staff_user, Listing.Status.PAUSED, "Underlying ownership was revoked.")
+                    listing.moderate(staff_user, Listing.Status.PAUSED, reason)
         return self
 
 class ListingAuthorization(models.Model):
