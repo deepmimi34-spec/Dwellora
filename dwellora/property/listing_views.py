@@ -37,7 +37,7 @@ class OwnershipClaimReview(APIView):
             claim.review(request.user, request.data.get("status"), request.data.get("review_note", ""))
         except DjangoValidationError as exc:
             return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(PropertyOwnershipSerializer(claim).data)
+        return Response(PropertyOwnershipSerializer(claim, context={"request": request}).data)
 
 
 class ListingAuthorizationCreate(generics.CreateAPIView):
@@ -66,7 +66,7 @@ class ListingAuthorizationReview(APIView):
             authorization.review(request.user, request.data.get("status"), request.data.get("review_note", ""))
         except DjangoValidationError as exc:
             return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(ListingAuthorizationSerializer(authorization).data)
+        return Response(ListingAuthorizationSerializer(authorization, context={"request": request}).data)
 
 
 def public_listing_queryset():
@@ -235,4 +235,4 @@ class PractitionerLicenseReview(APIView):
             )
         except DjangoValidationError as exc:
             return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(PractitionerLicenseSerializer(license_record).data)
+        return Response(PractitionerLicenseSerializer(license_record, context={"request": request}).data)
