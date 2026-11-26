@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
+from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
 
 
 @admin.register(PropertyOwnership)
