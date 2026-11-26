@@ -140,6 +140,43 @@ class ListingArchitectureTests(TestCase):
         claim.refresh_from_db()
         self.assertEqual(claim.status, PropertyOwnership.Status.VERIFIED)
 
+    def test_rejecting_previously_verified_ownership_pauses_all_related_listings(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        authorization = self.authorize_agent(claim)
+        direct_listing = Listing.objects.create(
+            property=self.property,
+            lister=self.owner,
+            offer_type=Listing.OfferType.RENT,
+            headline="Owner direct listing",
+            price="1000.00",
+            status=Listing.Status.PUBLISHED,
+            moderated_by=self.staff,
+            moderated_at=timezone.now(),
+        )
+        agent_listing = Listing.objects.create(
+            property=self.property,
+            lister=self.agent,
+            authorization=authorization,
+            offer_type=Listing.OfferType.RENT,
+            headline="Agent authorized listing",
+            price="1200.00",
+            status=Listing.Status.PUBLISHED,
+            moderated_by=self.staff,
+            moderated_at=timezone.now(),
+        )
+
+        claim.review(self.staff, PropertyOwnership.Status.REJECTED, "Ownership evidence invalidated.")
+
+        claim.refresh_from_db()
+        authorization.refresh_from_db()
+        direct_listing.refresh_from_db()
+        agent_listing.refresh_from_db()
+        self.assertEqual(claim.status, PropertyOwnership.Status.REJECTED)
+        self.assertEqual(authorization.status, ListingAuthorization.Status.REVOKED)
+        self.assertEqual(direct_listing.status, Listing.Status.PAUSED)
+        self.assertEqual(agent_listing.status, Listing.Status.PAUSED)
+
     def test_authorization_revocation_rolls_back_if_listing_pause_fails(self):
         claim = self.claim()
         self.verify_claim(claim)
