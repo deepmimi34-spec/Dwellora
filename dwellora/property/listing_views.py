@@ -148,7 +148,7 @@ class ListingSubmit(APIView):
             listing.submit_for_review()
         except DjangoValidationError as exc:
             return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(ListingSerializer(listing).data)
+        return Response(ListingSerializer(listing, context={"request": request}).data)
 
 
 class ListingModeration(APIView):
