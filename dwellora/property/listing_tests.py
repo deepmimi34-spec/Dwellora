@@ -409,3 +409,15 @@ class ListingArchitectureTests(TestCase):
         response = ListingChargeListCreate.as_view()(request, listing_pk=listing.pk)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(listing.charges.count(), 0)
+
+    def test_listing_submission_requires_cost_disclosure(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        listing = Listing.objects.create(
+            lister=self.owner, property=self.property, offer_type="rent",
+            headline="Undisclosed charges", price=1000, billing_period="month",
+            advance_months=6, costs_disclosed=False,
+        )
+        with self.assertRaises(ValidationError):
+            listing.submit_for_review()
+        self.assertEqual(listing.status, Listing.Status.DRAFT)
