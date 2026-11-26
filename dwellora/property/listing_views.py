@@ -92,7 +92,7 @@ def public_listing_queryset():
         Q(authorization__valid_from__isnull=True) | Q(authorization__valid_from__lte=today)
     ).filter(
         Q(authorization__valid_until__isnull=True) | Q(authorization__valid_until__gte=today)
-    ).select_related("property", "lister", "authorization", "authorization__ownership").distinct()
+    ).select_related("property", "lister", "authorization", "authorization__ownership").prefetch_related("lister__practitioner_licenses").distinct()
 
 
 class PublicListingList(generics.ListAPIView):
