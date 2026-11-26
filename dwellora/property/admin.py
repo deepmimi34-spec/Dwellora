@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
+from .listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
 
 
 @admin.register(PropertyOwnership)
@@ -154,3 +154,10 @@ class ListingChargeAdmin(admin.ModelAdmin):
     list_filter = ("charge_type", "payer", "frequency", "is_required", "currency")
     search_fields = ("listing__headline", "listing__property__title", "description")
     readonly_fields = ("created_by", "created_at", "updated_at")
+
+@admin.register(PractitionerLicense)
+class PractitionerLicenseAdmin(admin.ModelAdmin):
+    list_display = ("profile", "license_number", "license_type", "status", "valid_until", "source_checked_at", "reviewed_by")
+    list_filter = ("status", "license_type", "valid_until")
+    search_fields = ("profile__username", "profile__email", "license_number")
+    readonly_fields = ("profile", "status", "reviewed_by", "reviewed_at", "source_checked_at", "review_note")
