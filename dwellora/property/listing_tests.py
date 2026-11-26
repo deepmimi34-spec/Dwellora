@@ -4,11 +4,11 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.models import Profile
 from property.models import Property
-from property.listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
+from property.listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
 from property.listing_views import (
     OwnershipClaimCreate, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationReview,
-    ListingCreate, ListingSubmit, ListingModeration, ListingAvailabilityConfirm,
+    ListingCreate, ListingSubmit, ListingModeration, ListingAvailabilityConfirm, ListingChargeListCreate,
     PublicListingList, MyListingList, ListingUpdate, ListingDelete,
 )
 
@@ -325,3 +325,80 @@ class ListingArchitectureTests(TestCase):
         request = self.factory.get("/listings/")
         response = PublicListingList.as_view()(request)
         self.assertEqual([item["id"] for item in response.data], [fresh.pk])
+
+    def test_structured_required_tenant_charge_is_in_estimate(self):
+        listing = Listing.objects.create(
+            lister=self.owner, property=self.property, offer_type="rent",
+            headline="Structured cost", price=1200, billing_period="month",
+            advance_months=6,
+        )
+        ListingCharge.objects.create(
+            listing=listing, charge_type=ListingCharge.ChargeType.DEPOSIT,
+            amount=300, payer=ListingCharge.Payer.TENANT,
+            frequency=ListingCharge.Frequency.ONE_TIME, is_required=True,
+            created_by=self.owner,
+        )
+        ListingCharge.objects.create(
+            listing=listing, charge_type=ListingCharge.ChargeType.MAINTENANCE,
+            amount=900, payer=ListingCharge.Payer.OWNER,
+            frequency=ListingCharge.Frequency.ONE_TIME, is_required=True,
+            created_by=self.owner,
+        )
+        self.assertEqual(listing.estimated_upfront_total, 7500)
+
+    def test_unknown_mandatory_upfront_charge_makes_estimate_unknown(self):
+        listing = Listing.objects.create(
+            lister=self.owner, property=self.property, offer_type="rent",
+            headline="Unknown charge", price=1000, billing_period="month",
+            advance_months=6,
+        )
+        ListingCharge.objects.create(
+            listing=listing, charge_type=ListingCharge.ChargeType.OTHER,
+            amount=None, payer=ListingCharge.Payer.TENANT,
+            frequency=ListingCharge.Frequency.ONE_TIME, is_required=True,
+            created_by=self.owner,
+        )
+        self.assertIsNone(listing.estimated_upfront_total)
+
+    def test_optional_upfront_charge_is_not_in_estimate(self):
+        listing = Listing.objects.create(
+            lister=self.owner, property=self.property, offer_type="rent",
+            headline="Optional fee", price=1000, billing_period="month",
+            advance_months=6,
+        )
+        ListingCharge.objects.create(
+            listing=listing, charge_type=ListingCharge.ChargeType.OTHER,
+            amount=250, payer=ListingCharge.Payer.TENANT,
+            frequency=ListingCharge.Frequency.ONE_TIME, is_required=False,
+            created_by=self.owner,
+        )
+        self.assertEqual(listing.estimated_upfront_total, 6000)
+
+    def test_lister_can_add_charge_to_own_draft(self):
+        listing = Listing.objects.create(lister=self.owner, property=self.property, offer_type="rent", headline="Draft cost", price=100, status=Listing.Status.DRAFT)
+        request = self.factory.post(f"/listings/{listing.pk}/charges/", {
+            "charge_type": "agent_fee",
+            "amount": "450.00",
+            "currency": "GHS",
+            "payer": "tenant",
+            "frequency": "one_time",
+            "is_required": True,
+            "description": "Agent commission",
+        }, format="json")
+        force_authenticate(request, user=self.owner)
+        response = ListingChargeListCreate.as_view()(request, listing_pk=listing.pk)
+        self.assertEqual(response.status_code, 201)
+        charge = ListingCharge.objects.get(pk=response.data["id"])
+        self.assertEqual(charge.created_by_id, self.owner.pk)
+        self.assertEqual(charge.listing_id, listing.pk)
+
+    def test_other_user_cannot_add_charge_to_listing(self):
+        listing = Listing.objects.create(lister=self.owner, property=self.property, offer_type="rent", headline="Draft cost", price=100, status=Listing.Status.DRAFT)
+        request = self.factory.post(f"/listings/{listing.pk}/charges/", {
+            "charge_type": "agent_fee", "amount": "100", "payer": "tenant",
+            "frequency": "one_time", "is_required": True,
+        }, format="json")
+        force_authenticate(request, user=self.agent)
+        response = ListingChargeListCreate.as_view()(request, listing_pk=listing.pk)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(listing.charges.count(), 0)
