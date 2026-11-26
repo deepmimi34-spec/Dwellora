@@ -9,7 +9,13 @@ class PractitionerLicenseSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     reviewed_by = serializers.PrimaryKeyRelatedField(read_only=True)
     reviewed_at = serializers.DateTimeField(read_only=True)
-    review_note = serializers.CharField(read_only=True)
+    review_note = serializers.SerializerMethodField()
+
+    def get_review_note(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_staff:
+            return obj.review_note
+        return None
 
     def validate_source_url(self, value):
         if not value.startswith("https://reac.gov.gh/"):
@@ -34,7 +40,13 @@ class PropertyOwnershipSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     reviewed_by = serializers.PrimaryKeyRelatedField(read_only=True)
     reviewed_at = serializers.DateTimeField(read_only=True)
-    review_note = serializers.CharField(read_only=True)
+    review_note = serializers.SerializerMethodField()
+
+    def get_review_note(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_staff:
+            return obj.review_note
+        return None
 
     class Meta:
         model = PropertyOwnership
@@ -55,7 +67,13 @@ class ListingAuthorizationSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     reviewed_by = serializers.PrimaryKeyRelatedField(read_only=True)
     reviewed_at = serializers.DateTimeField(read_only=True)
-    review_note = serializers.CharField(read_only=True)
+    review_note = serializers.SerializerMethodField()
+
+    def get_review_note(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_staff:
+            return obj.review_note
+        return None
 
     class Meta:
         model = ListingAuthorization
