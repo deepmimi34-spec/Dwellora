@@ -77,7 +77,7 @@ class ListingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Listing
-        fields = ("id", "property", "property_title", "lister", "authorization", "offer_type", "headline", "description", "unit_label", "price", "currency", "billing_period", "advance_months", "deposit_amount", "agent_fee_amount", "viewing_fee_amount", "service_charge_amount", "other_fees_amount", "other_fees_description", "costs_disclosed", "estimated_upfront_total", "availability_freshness", "availability_confirmed_at", "available_from", "published_at", "expires_at", "status", "moderated_by", "moderated_at", "moderation_note", "created_at", "updated_at")
+        fields = ("id", "charges", "property", "property_title", "lister", "authorization", "offer_type", "headline", "description", "unit_label", "price", "currency", "billing_period", "advance_months", "deposit_amount", "agent_fee_amount", "viewing_fee_amount", "service_charge_amount", "other_fees_amount", "other_fees_description", "costs_disclosed", "estimated_upfront_total", "availability_freshness", "availability_confirmed_at", "available_from", "published_at", "expires_at", "status", "moderated_by", "moderated_at", "moderation_note", "created_at", "updated_at")
         read_only_fields = ("id", "property_title", "lister", "estimated_upfront_total", "availability_confirmed_at", "published_at", "status", "moderated_by", "moderated_at", "moderation_note", "created_at", "updated_at")
 
     def validate(self, attrs):
