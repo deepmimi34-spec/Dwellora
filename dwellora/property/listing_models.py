@@ -160,8 +160,18 @@ class ListingAuthorization(models.Model):
         if self.valid_from and self.valid_until and self.valid_until < self.valid_from:
             raise ValidationError("Authorization end date cannot precede its start date.")
         if self.status == self.Status.APPROVED:
+            if self.ownership.claimant_id == self.lister_id:
+                raise ValidationError("An owner should use a direct listing; authorization is for another lister.")
+            if not self.evidence_type.strip():
+                raise ValidationError("Approved authorization must record its evidence type.")
             if self.ownership.status != PropertyOwnership.Status.VERIFIED:
                 raise ValidationError("Only verified ownership can support an authorization.")
+            if not PractitionerLicense.objects.filter(
+                profile=self.lister,
+                status=PractitionerLicense.Status.VERIFIED,
+                valid_until__gte=timezone.localdate(),
+            ).exists():
+                raise ValidationError("The lister must have a current REAC licence verified by staff.")
             if not self.reviewed_by_id or not self.reviewed_by.is_staff or not self.reviewed_at:
                 raise ValidationError("Approved authorization requires staff review metadata.")
 
