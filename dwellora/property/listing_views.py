@@ -4,8 +4,8 @@ from rest_framework import generics, permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing
-from .listing_serializers import PropertyOwnershipSerializer, ListingAuthorizationSerializer, ListingSerializer, ListingModerationSerializer
+from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
+from .listing_serializers import PropertyOwnershipSerializer, ListingAuthorizationSerializer, ListingSerializer, ListingModerationSerializer, ListingAvailabilityConfirmationSerializer
 
 
 class OwnershipClaimCreate(generics.CreateAPIView):
@@ -130,3 +130,17 @@ class ListingModeration(APIView):
         except DjangoValidationError as exc:
             return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
         return Response(ListingSerializer(listing).data)
+
+class ListingAvailabilityConfirm(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        listing = get_object_or_404(Listing, pk=pk)
+        if listing.lister_id != request.user.pk and not request.user.is_staff:
+            return Response({"detail": "Only the listing owner or staff can confirm availability."}, status=status.HTTP_403_FORBIDDEN)
+        if listing.status not in (Listing.Status.PUBLISHED, Listing.Status.PAUSED):
+            return Response({"detail": "Availability can only be confirmed for published or paused listings."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ListingAvailabilityConfirmationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        confirmation = serializer.save(listing=listing, confirmed_by=request.user)
+        return Response(ListingAvailabilityConfirmationSerializer(confirmation).data, status=status.HTTP_201_CREATED)
