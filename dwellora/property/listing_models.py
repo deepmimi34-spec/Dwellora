@@ -227,7 +227,7 @@ class Listing(models.Model):
         self.save(update_fields=["status", "moderated_by", "moderated_at", "moderation_note", "published_at", "updated_at"])
         return self
 
-        @builtin_property
+    @builtin_property
     def estimated_upfront_total(self):
         if self.offer_type == self.OfferType.SHORT_STAY and self.billing_period == "night":
             return None
