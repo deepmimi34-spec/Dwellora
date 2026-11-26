@@ -4,7 +4,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.models import Profile
 from property.models import Property
-from property.listing_models import PropertyOwnership, ListingAuthorization, Listing
+from property.listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
 from property.listing_views import (
     OwnershipClaimCreate, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationReview,
@@ -147,7 +147,7 @@ class ListingArchitectureTests(TestCase):
         listing = Listing.objects.get(pk=response.data["id"])
         self.assertEqual(listing.lister_id, self.owner.pk)
         self.assertEqual(listing.status, Listing.Status.DRAFT)
-        submit = self.factory.post(f"/listings/{listing.pk}/submit/")
+        ListingAvailabilityConfirmation.objects.create(listing=listing, confirmed_by=self.owner, is_available=True)\n        submit = self.factory.post(f"/listings/{listing.pk}/submit/")
         force_authenticate(submit, user=self.owner)
         submit_response = ListingSubmit.as_view()(submit, pk=listing.pk)
         self.assertEqual(submit_response.status_code, 400)
