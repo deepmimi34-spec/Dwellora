@@ -1,5 +1,7 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics, permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -71,13 +73,13 @@ class PublicListingList(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Listing.objects.filter(status=Listing.Status.PUBLISHED).select_related("property", "lister", "authorization")
+        return Listing.objects.filter(status=Listing.Status.PUBLISHED, availability_confirmed_at__gte=timezone.now() - timezone.timedelta(days=30)).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.localdate())).select_related("property", "lister", "authorization")
 
 
 class PublicListingDetail(generics.RetrieveAPIView):
     serializer_class = ListingSerializer
     permission_classes = [permissions.AllowAny]
-    queryset = Listing.objects.filter(status=Listing.Status.PUBLISHED).select_related("property", "lister", "authorization")
+    queryset = Listing.objects.filter(status=Listing.Status.PUBLISHED, availability_confirmed_at__gte=timezone.now() - timezone.timedelta(days=30)).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.localdate())).select_related("property", "lister", "authorization")
 
 
 class MyListingList(generics.ListAPIView):
