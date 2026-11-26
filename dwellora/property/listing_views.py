@@ -86,7 +86,9 @@ def public_listing_queryset():
         | Q(
             authorization__status=ListingAuthorization.Status.APPROVED,
             authorization__ownership__status=PropertyOwnership.Status.VERIFIED,
-            authorization__lister=F("lister"),\n            authorization__lister__practitioner_licenses__status=PractitionerLicense.Status.VERIFIED,\n            authorization__lister__practitioner_licenses__valid_until__gte=today,
+            authorization__lister=F("lister"),
+            authorization__lister__practitioner_licenses__status=PractitionerLicense.Status.VERIFIED,
+            authorization__lister__practitioner_licenses__valid_until__gte=today,
         )
     ).filter(
         Q(authorization__valid_from__isnull=True) | Q(authorization__valid_from__lte=today)
