@@ -56,7 +56,6 @@ class PropertyOwnership(models.Model):
                     listing.moderate(staff_user, Listing.Status.PAUSED, "Underlying ownership was revoked.")
         return self
 
-
 class ListingAuthorization(models.Model):
     class AuthorityType(models.TextChoices):
         OWNER = "owner", "Owner listing"
