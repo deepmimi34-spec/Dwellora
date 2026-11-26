@@ -17,7 +17,7 @@ class PropertyOwnership(models.Model):
 
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="ownership_claims")
     claimant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="property_ownership_claims")
-    ownership_type = models.CharField(max_length=20, choices=[("individual", "Individual"), ("company_representative", "Company representative")], default="individual")
+    ownership_type = models.CharField(max_length=32, choices=[("individual", "Individual"), ("company_representative", "Company representative")], default="individual")
     evidence_type = models.CharField(max_length=80, blank=True, help_text="Evidence category only; never place sensitive document contents here.")
     evidence_reference = models.CharField(max_length=255, blank=True, help_text="Private storage reference. Do not use a public URL.")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.CLAIMED)
