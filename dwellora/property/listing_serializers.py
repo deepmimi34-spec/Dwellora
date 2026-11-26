@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .listing_models import PropertyOwnership, ListingAuthorization, Listing
+from .listing_models import PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation
 from .models import Property
 
 
@@ -53,7 +53,7 @@ class ListingSerializer(serializers.ModelSerializer):
     lister = serializers.PrimaryKeyRelatedField(read_only=True)
     status = serializers.CharField(read_only=True)
     property_title = serializers.CharField(source="property.title", read_only=True)
-    estimated_upfront_total = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
+    estimated_upfront_total = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True, allow_null=True)
     moderated_by = serializers.PrimaryKeyRelatedField(read_only=True)
     moderated_at = serializers.DateTimeField(read_only=True)
     moderation_note = serializers.CharField(read_only=True)
@@ -86,3 +86,11 @@ class ListingModerationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = ("status", "moderation_note")
+
+class ListingAvailabilityConfirmationSerializer(serializers.ModelSerializer):
+    confirmed_by = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = ListingAvailabilityConfirmation
+        fields = ("id", "listing", "confirmed_by", "is_available", "note", "confirmed_at")
+        read_only_fields = ("id", "listing", "confirmed_by", "confirmed_at")
