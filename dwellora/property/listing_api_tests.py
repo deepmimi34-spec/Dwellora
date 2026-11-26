@@ -1,11 +1,12 @@
 from django.test import SimpleTestCase, TestCase
 from django.contrib.auth.models import AnonymousUser
+from django.utils import timezone
 from django.urls import reverse, resolve
 from rest_framework.test import APIRequestFactory
 
 from accounts.models import Profile
 from property.models import Property
-from property.listing_models import Listing
+from property.listing_models import Listing, PropertyOwnership
 from property.listing_serializers import (
     PractitionerLicenseSerializer,
     PropertyOwnershipSerializer,
@@ -81,3 +82,79 @@ class ListingAPISerializerPrivacyTests(TestCase):
         self.assertEqual(
             owner_data["moderation_note"], "Internal staff-only review context"
         )
+
+
+
+class ListingCreationAuthorityTests(TestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.owner = Profile.objects.create_user(
+            username="listing_owner", password="Strong-password-1!"
+        )
+        self.other_user = Profile.objects.create_user(
+            username="unverified_lister", password="Strong-password-1!"
+        )
+        self.staff = Profile.objects.create_user(
+            username="listing_staff", password="Strong-password-1!", is_staff=True
+        )
+        self.property = Property.objects.create(
+            title="Verified Listing Property",
+            property_type="Apartment",
+            region="Ashanti",
+            city="Kumasi",
+        )
+
+    def _request(self, user):
+        request = self.factory.post("/api/property/listings/create/")
+        request.user = user
+        return request
+
+    def _payload(self):
+        return {
+            "property": self.property.pk,
+            "offer_type": Listing.OfferType.RENT,
+            "headline": "Apartment for rent",
+            "price": "2500.00",
+            "currency": "GHS",
+            "billing_period": "month",
+        }
+
+    def test_unverified_user_cannot_create_listing_for_property(self):
+        serializer = ListingSerializer(
+            data=self._payload(), context={"request": self._request(self.other_user)}
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("property", serializer.errors)
+
+    def test_verified_owner_can_create_listing(self):
+        PropertyOwnership.objects.create(
+            property=self.property,
+            claimant=self.owner,
+            status=PropertyOwnership.Status.VERIFIED,
+            reviewed_by=self.staff,
+            reviewed_at=timezone.now(),
+        )
+        serializer = ListingSerializer(
+            data=self._payload(), context={"request": self._request(self.owner)}
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        listing = serializer.save()
+        self.assertEqual(listing.lister_id, self.owner.pk)
+        self.assertEqual(listing.property_id, self.property.pk)
+
+    def test_client_cannot_assign_another_lister(self):
+        PropertyOwnership.objects.create(
+            property=self.property,
+            claimant=self.owner,
+            status=PropertyOwnership.Status.VERIFIED,
+            reviewed_by=self.staff,
+            reviewed_at=timezone.now(),
+        )
+        payload = self._payload()
+        payload["lister"] = self.other_user.pk
+        serializer = ListingSerializer(
+            data=payload, context={"request": self._request(self.owner)}
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        listing = serializer.save()
+        self.assertEqual(listing.lister_id, self.owner.pk)
