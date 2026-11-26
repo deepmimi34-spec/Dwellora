@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Q
+from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, serializers, status
@@ -69,18 +69,43 @@ class ListingAuthorizationReview(APIView):
         return Response(ListingAuthorizationSerializer(authorization).data)
 
 
+def public_listing_queryset():
+    today = timezone.localdate()
+    return Listing.objects.filter(
+        status=Listing.Status.PUBLISHED,
+        availability_confirmed_at__gte=timezone.now() - timedelta(days=30),
+    ).filter(
+        Q(expires_at__isnull=True) | Q(expires_at__gt=today)
+    ).filter(
+        Q(
+            authorization__isnull=True,
+            property__ownership_claims__claimant=F("lister"),
+            property__ownership_claims__status=PropertyOwnership.Status.VERIFIED,
+        )
+        | Q(
+            authorization__status=ListingAuthorization.Status.APPROVED,
+            authorization__ownership__status=PropertyOwnership.Status.VERIFIED,
+            authorization__lister=F("lister"),
+        )
+    ).filter(
+        Q(authorization__valid_from__isnull=True) | Q(authorization__valid_from__lte=today)
+    ).filter(
+        Q(authorization__valid_until__isnull=True) | Q(authorization__valid_until__gte=today)
+    ).select_related("property", "lister", "authorization", "authorization__ownership").distinct()
+
+
 class PublicListingList(generics.ListAPIView):
     serializer_class = ListingSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Listing.objects.filter(status=Listing.Status.PUBLISHED, availability_confirmed_at__gte=timezone.now() - timedelta(days=30)).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.localdate())).select_related("property", "lister", "authorization")
+        return public_listing_queryset()
 
 
 class PublicListingDetail(generics.RetrieveAPIView):
     serializer_class = ListingSerializer
     permission_classes = [permissions.AllowAny]
-    queryset = Listing.objects.filter(status=Listing.Status.PUBLISHED, availability_confirmed_at__gte=timezone.now() - timezone.timedelta(days=30)).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.localdate())).select_related("property", "lister", "authorization")
+    queryset = public_listing_queryset()
 
 
 class MyListingList(generics.ListAPIView):
