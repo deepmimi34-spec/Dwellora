@@ -180,7 +180,7 @@ class Listing(models.Model):
 
     def has_current_authority(self):
         if self.authorization_id:
-            return self.authorization.is_current() and self.authorization.ownership.claimant_id == self.lister_id
+            return self.authorization.is_current()
         return PropertyOwnership.objects.filter(property=self.property, claimant=self.lister, status=PropertyOwnership.Status.VERIFIED).exists()
 
     def can_publish(self):
