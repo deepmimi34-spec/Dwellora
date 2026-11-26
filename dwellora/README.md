@@ -80,3 +80,15 @@ CI also runs `python manage.py check`, Python compilation and the React/TypeScri
 - Never commit `.env`, database files, virtual environments, or generated build output.
 - Do not treat a profile identity check, REAC licence lookup, property visit or user review as proof of property title or structural safety.
 - Do not create migrations against a live database before inspection and backup.
+
+## Ownership and listing architecture (implemented, gated)
+
+The stabilization branch now separates physical Property records from ownership claims, authorised listers and marketplace offers. The listing workflow includes staff verification/moderation, owner-scoped draft operations, listing freshness confirmations, availability pause and cost estimate fields.
+
+Routes are defined in `property/listing_urls.py` but are not mounted in the active URLConf until the deployed database has been inspected and a data-preserving migration plan is reviewed. Read `docs/OWNERSHIP_AND_LISTING_ARCHITECTURE.md` for the full model and rollout plan.
+
+Run the focused architecture tests with:
+
+```bash
+python manage.py test property.listing_tests --verbosity 2
+```
