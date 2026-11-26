@@ -337,7 +337,7 @@ class ListingArchitectureTests(TestCase):
         listing = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
             headline="Structured cost", price=1200, billing_period="month",
-            advance_months=6,
+            advance_months=6, costs_disclosed=True,
         )
         ListingCharge.objects.create(
             listing=listing, charge_type=ListingCharge.ChargeType.DEPOSIT,
@@ -357,7 +357,7 @@ class ListingArchitectureTests(TestCase):
         listing = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
             headline="Unknown charge", price=1000, billing_period="month",
-            advance_months=6,
+            advance_months=6, costs_disclosed=True,
         )
         ListingCharge.objects.create(
             listing=listing, charge_type=ListingCharge.ChargeType.OTHER,
@@ -371,7 +371,7 @@ class ListingArchitectureTests(TestCase):
         listing = Listing.objects.create(
             lister=self.owner, property=self.property, offer_type="rent",
             headline="Optional fee", price=1000, billing_period="month",
-            advance_months=6,
+            advance_months=6, costs_disclosed=True,
         )
         ListingCharge.objects.create(
             listing=listing, charge_type=ListingCharge.ChargeType.OTHER,
