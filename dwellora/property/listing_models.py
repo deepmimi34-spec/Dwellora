@@ -52,6 +52,8 @@ class PropertyOwnership(models.Model):
         self.full_clean()
         self.save(update_fields=["status", "reviewed_by", "reviewed_at", "review_note"])
         if status == self.Status.REVOKED:
+            for direct_listing in self.property.listings.filter(lister=self.claimant, status=Listing.Status.PUBLISHED):
+                direct_listing.moderate(staff_user, Listing.Status.PAUSED, "Underlying ownership was revoked.")
             for authorization in self.authorizations.filter(status=ListingAuthorization.Status.APPROVED):
                 authorization.review(staff_user, ListingAuthorization.Status.REVOKED, "Underlying ownership was revoked.")
                 for listing in authorization.listings.filter(status=Listing.Status.PUBLISHED):
