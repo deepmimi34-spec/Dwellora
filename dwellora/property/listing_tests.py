@@ -7,7 +7,8 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from accounts.models import Profile
 from property.models import Property
 from property.listing_models import PractitionerLicense, PropertyOwnership, ListingAuthorization, Listing, ListingAvailabilityConfirmation, ListingCharge
-from property.listing_serializers import PractitionerLicenseSerializer, ListingSerializer\nfrom property.listing_views import (
+from property.listing_serializers import PractitionerLicenseSerializer, ListingSerializer
+from property.listing_views import (
     OwnershipClaimCreate, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationReview,
     ListingCreate, ListingSubmit, ListingModeration, ListingAvailabilityConfirm, ListingChargeListCreate,
