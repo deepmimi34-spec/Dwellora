@@ -34,7 +34,8 @@ INSTALLED_APPS = [
     "property",
     "rentals",
     "services",
-    "verification",\n    "feedback",
+    "verification",
+    "feedback",
 ]
 
 MIDDLEWARE = [
