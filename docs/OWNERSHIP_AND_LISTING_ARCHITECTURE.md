@@ -40,7 +40,13 @@ erDiagram
 
 **Limit:** current implementation represents claims by individual profiles. Legal entities, co-ownership percentages, company registry checks and title-document review require a later extension and specialist workflow.
 
-## Practitioner licensing (separate from property authority)\n\nThe branch now includes a PractitionerLicense record for a profile's REAC licence number/type, expiry, official source, check timestamp and staff reviewer. The status is verified only after a staff member manually checks the official registry. This is **not an automated REAC integration**. A current staff-verified agent/broker licence is required before a listing authorization can be approved. Public listing summaries expose only the licence type, masked number and checked/expiry dates. Licence expiry/suspension/rejection revokes downstream approved listing authorizations when no other current verified licence remains.\n\nOfficial registry: https://reac.gov.gh/public-registry-search/\n\n## Listing authorization
+## Practitioner licensing (separate from property authority)
+
+The branch now includes a PractitionerLicense record for a profile's REAC licence number/type, expiry, official source, check timestamp and staff reviewer. The status is verified only after a staff member manually checks the official registry. This is **not an automated REAC integration**. A current staff-verified agent/broker licence is required before a listing authorization can be approved. Public listing summaries expose only the licence type, masked number and checked/expiry dates. Licence expiry/suspension/rejection revokes downstream approved listing authorizations when no other current verified licence remains.
+
+Official registry: https://reac.gov.gh/public-registry-search/
+
+## Listing authorization
 
 - Owner listers rely on a verified ownership claim for the same property.
 - Agent/manager listers request a ListingAuthorization against a verified ownership claim.
@@ -78,7 +84,9 @@ Each Listing records offer type (rent/sale/short stay), amount, currency (GHS de
 
 Route definitions are in property/listing_urls.py; they are intentionally not mounted in the active URLConf until migration review:
 
-- licenses/ — submit/list REAC licence records\n- licenses/<id>/review/ — staff licence verification\n- ownership/claims/ — submit claim
+- licenses/ — submit/list REAC licence records
+- licenses/<id>/review/ — staff licence verification
+- ownership/claims/ — submit claim
 - ownership/my-claims/ — own claims (staff sees all)
 - ownership/claims/<id>/review/ — staff review
 - authorizations/ and authorizations/my/ — request/list authority
@@ -88,7 +96,9 @@ Route definitions are in property/listing_urls.py; they are intentionally not mo
 - listings/create/, update/delete — own draft operations
 - listings/<id>/submit/ — submit for review
 - listings/<id>/moderate/ — staff moderation
-- listings/<id>/availability/ — lister/staff availability confirmation\n- listings/<id>/charges/ — lister manages structured charges on own draft\n- charges/<id>/update/ and delete/ — own draft cost entries
+- listings/<id>/availability/ — lister/staff availability confirmation
+- listings/<id>/charges/ — lister manages structured charges on own draft
+- charges/<id>/update/ and delete/ — own draft cost entries
 
 ## Security and validation baseline
 
