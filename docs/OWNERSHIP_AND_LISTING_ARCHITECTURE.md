@@ -88,7 +88,7 @@ Route definitions are in property/listing_urls.py; they are intentionally not mo
 - listings/create/, update/delete — own draft operations
 - listings/<id>/submit/ — submit for review
 - listings/<id>/moderate/ — staff moderation
-- listings/<id>/availability/ — lister/staff availability confirmation
+- listings/<id>/availability/ — lister/staff availability confirmation\n- listings/<id>/charges/ — lister manages structured charges on own draft\n- charges/<id>/update/ and delete/ — own draft cost entries
 
 ## Security and validation baseline
 
