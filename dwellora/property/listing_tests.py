@@ -318,7 +318,7 @@ class ListingArchitectureTests(TestCase):
     def test_listing_publish_requires_recent_availability_confirmation(self):
         claim = self.claim()
         self.verify_claim(claim)
-        listing = Listing.objects.create(lister=self.owner, property=self.property, offer_type="rent", headline="No confirmation", price=100)
+        listing = Listing.objects.create(lister=self.owner, property=self.property, offer_type="rent", headline="No confirmation", price=100, costs_disclosed=True)
         listing.submit_for_review()
         request = self.factory.post(f"/listings/{listing.pk}/moderate/", {"status": "published"}, format="json")
         force_authenticate(request, user=self.staff)
