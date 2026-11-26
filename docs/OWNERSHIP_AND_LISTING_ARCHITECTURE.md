@@ -104,7 +104,7 @@ Route definitions are in property/listing_urls.py; they are intentionally not mo
 
 ## Migration and rollout order
 
-1. Inventory current deployed database, schema, records, table collisions and custom-user history. Take a verified backup.
+1. Run the read-only `python manage.py audit_dwellora_schema` inventory against the target database; review existing tables, model table-name collisions and migration history. Inventory records/custom-user schema separately, then take a verified backup.
 2. Decide how legacy Property records map to physical assets. Do **not** automatically create verified ownership claims from old rows.
 3. Generate migrations in a disposable database using the current branch; inspect SQL and dependency order.
 4. Test migrations against a copy of the deployed schema/data and verify rollback strategy.
