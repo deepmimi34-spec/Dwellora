@@ -193,7 +193,18 @@ class ListingAuthorization(models.Model):
 
     def is_current(self):
         today = timezone.localdate()
-        return self.status == self.Status.APPROVED and self.ownership.status == PropertyOwnership.Status.VERIFIED and (not self.valid_from or self.valid_from <= today) and (not self.valid_until or self.valid_until >= today)
+        license_is_current = PractitionerLicense.objects.filter(
+            profile=self.lister,
+            status=PractitionerLicense.Status.VERIFIED,
+            valid_until__gte=today,
+        ).exists()
+        return (
+            self.status == self.Status.APPROVED
+            and self.ownership.status == PropertyOwnership.Status.VERIFIED
+            and license_is_current
+            and (not self.valid_from or self.valid_from <= today)
+            and (not self.valid_until or self.valid_until >= today)
+        )
 
 
 class Listing(models.Model):
