@@ -76,7 +76,7 @@ def public_listing_queryset():
         costs_disclosed=True,
         availability_confirmed_at__gte=timezone.now() - timedelta(days=30),
     ).filter(
-        Q(expires_at__isnull=True) | Q(expires_at__gt=today)
+        Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
     ).filter(
         Q(
             authorization__isnull=True,
