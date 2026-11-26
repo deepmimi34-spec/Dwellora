@@ -128,7 +128,6 @@ class PropertyOwnership(models.Model):
 
 class ListingAuthorization(models.Model):
     class AuthorityType(models.TextChoices):
-        OWNER = "owner", "Owner listing"
         AGENT = "agent", "Authorised agent"
         MANAGER = "manager", "Property manager"
 
@@ -157,6 +156,8 @@ class ListingAuthorization(models.Model):
 
     def clean(self):
         super().clean()
+        if self.authority_type not in (self.AuthorityType.AGENT, self.AuthorityType.MANAGER):
+            raise ValidationError("Listing authorization is only available to agents and property managers.")
         if self.ownership_id and self.ownership.property_id != self.property_id:
             raise ValidationError("Authorization and ownership must refer to the same property.")
         if self.valid_from and self.valid_until and self.valid_until < self.valid_from:
