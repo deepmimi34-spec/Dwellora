@@ -204,12 +204,15 @@ class Listing(models.Model):
             self.has_current_authority()
             and self.property.is_property_complete()
             and bool(self.headline and self.price >= 0)
+            and self.costs_disclosed
             and confirmed_recently
         )
 
     def submit_for_review(self):
         if not self.has_current_authority():
             raise ValidationError("Verified ownership or approved listing authority is required before submission.")
+        if not self.costs_disclosed:
+            raise ValidationError("Complete the cost disclosure before submitting this listing.")
         self.status = self.Status.SUBMITTED
         self.full_clean()
         self.save(update_fields=["status", "updated_at"])
