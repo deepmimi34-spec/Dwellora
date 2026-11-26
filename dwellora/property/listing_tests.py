@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
+from unittest.mock import patch
 
 from accounts.models import Profile
 from property.models import Property
@@ -119,6 +120,25 @@ class ListingArchitectureTests(TestCase):
         self.assertEqual(response.status_code, 403)
         claim.refresh_from_db()
         self.assertEqual(claim.status, PropertyOwnership.Status.CLAIMED)
+
+    def test_ownership_revocation_rolls_back_if_listing_pause_fails(self):
+        claim = self.claim()
+        self.verify_claim(claim)
+        Listing.objects.create(
+            property=self.property,
+            lister=self.owner,
+            offer_type=Listing.OfferType.RENT,
+            headline="Published test listing",
+            price="1000.00",
+            status=Listing.Status.PUBLISHED,
+            moderated_by=self.staff,
+            moderated_at=timezone.now(),
+        )
+        with patch.object(Listing, "moderate", side_effect=RuntimeError("simulated pause failure")):
+            with self.assertRaises(RuntimeError):
+                claim.review(self.staff, PropertyOwnership.Status.REVOKED, "Revocation test")
+        claim.refresh_from_db()
+        self.assertEqual(claim.status, PropertyOwnership.Status.VERIFIED)
 
     def test_owner_claim_can_be_verified_by_staff(self):
         claim = self.claim()
