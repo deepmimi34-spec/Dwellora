@@ -84,6 +84,8 @@ class ListingAuthorizationSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         request = self.context["request"]
         ownership = attrs["ownership"]
+        if attrs["authority_type"] not in (ListingAuthorization.AuthorityType.AGENT, ListingAuthorization.AuthorityType.MANAGER):
+            raise serializers.ValidationError({"authority_type": "Only agents and property managers may request listing authorization."})
         if ownership.claimant_id == request.user.pk:
             raise serializers.ValidationError("Property owners should create their own listing, not an agent authorization.")
         if ownership.property_id != attrs["property"].pk:
