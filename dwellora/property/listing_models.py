@@ -199,7 +199,7 @@ class Listing(models.Model):
             and self.property.is_property_complete()
             and bool(self.headline and self.price >= 0)
             and confirmed_recently
-        
+        )
 
     def submit_for_review(self):
         if not self.has_current_authority():
