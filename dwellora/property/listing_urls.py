@@ -3,7 +3,7 @@ from .listing_views import (
     OwnershipClaimCreate, OwnershipClaimList, OwnershipClaimReview,
     ListingAuthorizationCreate, ListingAuthorizationList, ListingAuthorizationReview,
     PublicListingList, PublicListingDetail, MyListingList, ListingCreate,
-    ListingUpdate, ListingDelete, ListingSubmit, ListingModeration,
+    ListingUpdate, ListingDelete, ListingSubmit, ListingModeration, ListingAvailabilityConfirm,
 )
 
 urlpatterns = [
